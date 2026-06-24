@@ -12,7 +12,7 @@ export interface GalleryItem {
   id: string;
   title: string;
   category: string;
-  imageUrl: string; // Base64 encoded string
+  imageUrl: string;
 }
 
 export interface PortfolioData {
@@ -20,7 +20,7 @@ export interface PortfolioData {
     name: string;
     title: string;
     tagline: string;
-    profileImage: string; // Base64 encoded string
+    profileImage: string;
   };
   about: {
     bio: string;
@@ -36,6 +36,6 @@ export interface PortfolioData {
   };
   settings: {
     theme: string;
-    pinHash: string; // SHA-256 string for the admin overlay gate
+    pinHash: string;
   };
 }

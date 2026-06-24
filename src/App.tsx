@@ -9,6 +9,9 @@ import { AdminOverlay } from './components/admin/AdminOverlay';
 import { AnimatedBackground } from './components/ui/AnimatedBackground';
 import { ScrollReveal } from './components/ui/ScrollReveal';
 
+// 1. Import your newly created Navbar component here
+import { Navbar } from './components/layout/Navbar';
+
 export default function App() {
   usePortfolioData();
   const { isLoading, error } = usePortfolioStore();
@@ -29,30 +32,42 @@ export default function App() {
     );
   }
 
+  // PASTE IT HERE: This replaces your old return statement completely
   return (
     <div className="relative min-h-screen bg-zinc-950 text-zinc-50 overflow-x-hidden selection:bg-emerald-500 selection:text-black">
-      {/* Background Engine Canvas */}
+      {/* Mounted globally at the root layout container view */}
+      <Navbar />
       <AnimatedBackground />
 
-      <main className="relative z-10 max-w-6xl mx-auto px-4 space-y-40 py-20">
+      <main className="relative z-10 max-w-6xl mx-auto px-4 space-y-40 py-32">
         <ScrollReveal>
-          <Hero />
+          <div id="hero">
+            <Hero />
+          </div>
         </ScrollReveal>
         
         <ScrollReveal delay={0.1}>
-          <About />
+          <div id="about">
+            <About />
+          </div>
         </ScrollReveal>
         
         <ScrollReveal>
-          <Projects />
+          <div id="work">
+            <Projects />
+          </div>
         </ScrollReveal>
         
         <ScrollReveal>
-          <Gallery />
+          <div id="sandbox">
+            <Gallery />
+          </div>
         </ScrollReveal>
         
         <ScrollReveal>
-          <Contact />
+          <div id="contact">
+            <Contact />
+          </div>
         </ScrollReveal>
       </main>
       

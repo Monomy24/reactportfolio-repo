@@ -1,15 +1,17 @@
 import { create } from 'zustand';
-import { PortfolioData } from '../types/portfolio';
+
+// FIX: Force type-only imports so the compiler strips this completely out of the browser's runtime build
+import type { PortfolioData } from '../types/portfolio';
 
 interface PortfolioState {
   data: PortfolioData | null;
-  draft: PortfolioData | null; // Keeps track of edits before final commit
+  draft: PortfolioData | null; // Tracks changes before pushing to GitHub
   isAuthenticated: boolean;
   isSaving: boolean;
   isLoading: boolean;
   error: string | null;
   
-  // Actions
+  // State Action Enforcers
   setPortfolioData: (data: PortfolioData) => void;
   updateDraft: (updater: (draft: PortfolioData) => void) => void;
   setAuthenticated: (status: boolean) => void;
@@ -18,7 +20,6 @@ interface PortfolioState {
   setError: (error: string | null) => void;
   resetDraft: () => void;
 }
-
 export const usePortfolioStore = create<PortfolioState>((set) => ({
   data: null,
   draft: null,

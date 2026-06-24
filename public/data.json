@@ -5,9 +5,13 @@
     "tagline": "Building responsive, modern, and interactive digital ecosystems.",
     "profileImage": ""
   },
-  "about": {
+    "about": {
     "bio": "Passionate developer focusing on scalable web apps and smooth user experiences.",
-    "skills": ["React", "TypeScript", "Tailwind CSS", "Node.js", "Zustand"]
+    "skills": [
+      { "name": "React Frame Core", "iconCode": "react" },
+      { "name": "TypeScript Typing", "iconCode": "typescript" },
+      { "name": "Tailwind Grid Layouts", "iconCode": "tailwindcss" }
+    ]
   },
   "projects": [],
   "gallery": [],

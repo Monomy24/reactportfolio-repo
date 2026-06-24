@@ -22,9 +22,13 @@ export interface PortfolioData {
     tagline: string;
     profileImage: string;
   };
-  about: {
+    about: {
     bio: string;
-    skills: string[];
+    // UPDATED: Evolved from basic text arrays into structural key/value objects
+    skills: {
+      name: string;      // The public text (e.g. "React Engine Core")
+      iconCode: string;  // The Devicon keyword (e.g. "react")
+    }[];
   };
   projects: ProjectItem[];
   gallery: GalleryItem[];

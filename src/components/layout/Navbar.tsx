@@ -5,7 +5,6 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Monitor viewport tracking loops to inject visual styling on scroll operations
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
@@ -15,7 +14,7 @@ export function Navbar() {
   const navLinks = [
     { name: 'About', href: '#about' },
     { name: 'Work', href: '#work' },
-    { name: 'Sandbox', href: '#sandbox' },
+    { name: 'Memories', href: '#sandbox' },
     { name: 'Contact', href: '#contact' },
   ];
 
@@ -25,21 +24,17 @@ export function Navbar() {
         scrolled ? 'bg-zinc-950/70 backdrop-blur-md border-b border-zinc-900/50 py-4' : 'bg-transparent py-6'
       }`}>
         <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
-          {/* Logo / Branding Mark */}
           <a href="#" className="font-mono text-sm tracking-tight font-bold hover:text-emerald-400 transition-colors">
             Cejay<span className="text-emerald-500">.dev</span>
           </a>
 
-          {/* Desktop Navigation Links Menu */}
+          {/* Clean Desktop Menu — No Public Console Link */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-mono font-medium text-zinc-400">
             {navLinks.map((link) => (
               <a key={link.name} href={link.href} className="hover:text-zinc-100 transition-colors">
                 {link.name}
               </a>
             ))}
-            <a href="#admin" className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700/80 text-zinc-300 text-xs rounded-xl transition-all">
-              Console
-            </a>
           </nav>
 
           {/* Mobile Menu Interactive Trigger */}
@@ -56,7 +51,7 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Responsive Mobile Drawer Sliding Overlay */}
+      {/* Responsive Mobile Drawer Sliding Overlay — No Public Console Link */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -80,22 +75,6 @@ export function Navbar() {
                   {link.name}
                 </motion.a>
               ))}
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: navLinks.length * 0.05 }}
-                className="h-[1px] bg-zinc-900 my-2"
-              />
-              <motion.a
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: (navLinks.length + 1) * 0.05 }}
-                href="#admin"
-                onClick={() => setIsOpen(false)}
-                className="text-sm font-mono text-emerald-400 hover:underline"
-              >
-                → Initialize System Console
-              </motion.a>
             </nav>
           </motion.div>
         )}

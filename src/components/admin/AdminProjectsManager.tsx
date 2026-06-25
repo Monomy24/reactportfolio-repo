@@ -94,7 +94,46 @@ export function AdminProjectsManager() {
                   </select>
                 </div>
               </div>
-                          {/* Grid 2: Description and Completion Status Checkbox */}
+
+              {/* Grid 1.5: Dynamic Expansion Parameters (URLs & Frameworks) */}
+              <div className="grid sm:grid-cols-3 gap-4 pt-2 border-t border-zinc-900">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-mono text-zinc-500">Live Domain Deployment Anchor</label>
+                  <input 
+                    type="url" 
+                    placeholder="https://vercel.app"
+                    value={project.deploymentUrl || ''} 
+                    onChange={(e) => updateDraft(d => { d.projects[index].deploymentUrl = e.target.value; })}
+                    className="w-full bg-zinc-900 border border-zinc-800/80 p-2 rounded-xl text-xs font-mono outline-none text-zinc-300 focus:border-emerald-500/30" 
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-mono text-zinc-500">Source Control Git Link</label>
+                  <input 
+                    type="url" 
+                    placeholder="https://github.com..."
+                    value={project.sourceCodeUrl || ''} 
+                    onChange={(e) => updateDraft(d => { d.projects[index].sourceCodeUrl = e.target.value; })}
+                    className="w-full bg-zinc-900 border border-zinc-800/80 p-2 rounded-xl text-xs font-mono outline-none text-zinc-300 focus:border-emerald-500/30" 
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-mono text-zinc-500">Framework Infrastructure Array (Comma Separated)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Next.js, Prisma, PostgreSQL"
+                    value={(project.frameworksArray || []).join(', ')} 
+                    onChange={(e) => updateDraft(d => { 
+                      d.projects[index].frameworksArray = e.target.value.split(',').map(s => s.trim()).filter(Boolean); 
+                    })}
+                    className="w-full bg-zinc-900 border border-zinc-800/80 p-2 rounded-xl text-xs font-mono outline-none text-emerald-400 focus:border-emerald-500/30" 
+                  />
+                </div>
+              </div>
+
+              {/* Grid 2: Description and Completion Status Checkbox */}
               <div className="grid sm:grid-cols-4 gap-4 items-start">
                 <div className="sm:col-span-3 space-y-1">
                   <label className="text-[11px] font-mono text-zinc-500">Repository Description Narrative Summary</label>

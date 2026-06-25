@@ -2,11 +2,17 @@ export interface ProjectItem {
   id: string;
   title: string;
   description: string;
-  stack: string[];
-  liveUrl: string;
-  githubUrl: string;
-  featured: boolean;
+  stack: string[];      // Your existing skills matrix array
+  liveUrl: string;      // Used for Lifecycle Status
+  githubUrl: string;    // Used for Project Type Classification
+  featured: boolean;    // Used for Build Complete Flag
+
+  // ADD THESE 3 DYNAMIC KEYS HERE:
+  deploymentUrl?: string;     // Live domain deployment anchor URL
+  sourceCodeUrl?: string;     // Source control Git link URL
+  frameworksArray?: string[]; // Framework infrastructure array
 }
+
 
 export interface GalleryItem {
   id: string;

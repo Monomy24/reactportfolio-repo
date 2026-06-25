@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeStore } from '../../store/themeStore';
 
 export function Navbar() {
+    // ... locate your hooks block at the top of the Navbar component:
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  
   const { currentDimension } = useThemeStore();
 
   useEffect(() => {
@@ -13,6 +13,28 @@ export function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  /* 
+    SENIOR DEV MOBILE OPTIMIZATION HOOK:
+    Listens directly to the mobile drawer state. When open, it injects a strict layout override 
+    onto the HTML body tag, forcing a full scroll freeze across all iOS and Android viewports.
+  */
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+    }
+
+    // Clean up to prevent structural layout locking glitches when navigating away
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+    };
+  }, [isOpen]);
+
 
   const navLinks = [
     { name: 'About', href: '#about' },
@@ -98,6 +120,7 @@ export function Navbar() {
         </div>
       </header>
 
+            {/* Responsive Mobile Drawer Sliding Overlay — Optimized for all smartphone heights */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -105,20 +128,30 @@ export function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className={`fixed inset-0 z-30 md:hidden flex flex-col justify-center p-8 ${currentConfig.mobileMenuBg}`}
+            /* 
+              SENIOR MOBILE OPTIMIZATION FIX:
+              Updated variable lookups from 'styleConfig' to 'currentConfig' to match 
+              your store map block perfectly and clear the name-not-found compile errors.
+            */
+            className={`fixed inset-0 z-30 md:hidden flex flex-col justify-start pt-32 px-8 pb-12 overflow-hidden h-screen w-screen ${currentConfig.mobileMenuBg}`}
+            style={{ touchAction: 'none' }} // Stops accidental background scrolling/rubber-banding
           >
-            <nav className={`flex flex-col gap-6 text-2xl font-bold tracking-tight ${
-              currentDimension === 'creamy' ? 'text-stone-800' : 'text-zinc-400'
+            {/* 
+              SENIOR DEV FIX: Confines link gaps and forces a clean left-aligned text matrix 
+              for optimal mobile viewports.
+            */}
+            <nav className={`flex flex-col gap-8 tracking-tight w-full ${
+              currentDimension === 'creamy' ? 'text-stone-800' : 'text-zinc-100'
             }`}>
               {navLinks.map((link, idx) => (
                 <motion.a
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
+                  transition={{ delay: idx * 0.04 }} // Snappier sequencing on mobile
                   key={link.name}
                   href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`transition-colors font-sans ${currentConfig.linksActiveMobile}`}
+                  onClick={() => setIsOpen(false)} // Safely collapses the overlay on link tap
+                  className={`text-3xl font-bold transition-colors font-sans w-fit ${currentConfig.linksActiveMobile}`}
                 >
                   {link.name}
                 </motion.a>

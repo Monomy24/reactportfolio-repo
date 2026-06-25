@@ -28,6 +28,14 @@ export interface PortfolioData {
     tagline: string;
     profileImage: string;
   };
+  graduation?: {
+    isEnabled: boolean;
+    badgeText: string;
+    title: string;
+    subtitle: string;
+    message: string;
+    gcashUrl: string;
+  };
     about: {
     bio: string;
     // UPDATED: Evolved from basic text arrays into structural key/value objects

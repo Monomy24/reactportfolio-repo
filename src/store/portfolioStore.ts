@@ -3,6 +3,15 @@ import { create } from 'zustand';
 // FIX: Force type-only imports so the compiler strips this completely out of the browser's runtime build
 import type { PortfolioData } from '../types/portfolio';
 
+export interface GraduationData {
+  isEnabled: boolean;
+  badgeText: string;
+  title: string;
+  subtitle: string;
+  message: string;
+  gcashUrl: string;
+}
+
 interface PortfolioState {
   data: PortfolioData | null;
   draft: PortfolioData | null; // Tracks changes before pushing to GitHub
@@ -20,6 +29,7 @@ interface PortfolioState {
   setError: (error: string | null) => void;
   resetDraft: () => void;
 }
+
 export const usePortfolioStore = create<PortfolioState>((set) => ({
   data: null,
   draft: null,

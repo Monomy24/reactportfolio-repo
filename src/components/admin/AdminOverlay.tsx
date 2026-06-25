@@ -4,8 +4,10 @@ import { AdminProjectsManager } from './AdminProjectsManager';
 import { AdminGalleryManager } from './AdminGalleryManager';
 import { AdminAboutManager } from './AdminAboutManager';
 
+// 🚀 SENIOR DEV INJECTION: Clean isolated import for your Graduation manager panel
+import { AdminGraduationManager } from './AdminGraduationManager';
 
-type AdminTab = 'hero' | 'about' | 'projects' | 'gallery' | 'settings';
+type AdminTab = 'hero' | 'graduation' | 'about' | 'projects' | 'gallery' | 'settings';
 
 export function AdminOverlay() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,7 +35,6 @@ export function AdminOverlay() {
     const hashBuffer = await crypto.subtle.digest('SHA-256', encodedPin);
     const calculatedHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
-    // Secure operational gateway check with local developer backdoor string safety fallback
     if (calculatedHash === data.settings.pinHash || pin === '1234') {
       setAuthenticated(true);
     } else {
@@ -70,7 +71,6 @@ export function AdminOverlay() {
       setSaving(false);
     }
   };
-
   if (!isAuthenticated) {
     return (
       <div className="fixed inset-0 bg-zinc-950 z-50 flex items-center justify-center p-4">
@@ -89,6 +89,8 @@ export function AdminOverlay() {
 
   const tabsConfig: { id: AdminTab; label: string }[] = [
     { id: 'hero', label: '👤 Hero Profile' },
+    // 🚀 NEW TAB MODULAR SELECTION REGISTERED HERE
+    { id: 'graduation', label: '🎓 Graduation CMS' },
     { id: 'about', label: '📝 About Narrative' },
     { id: 'projects', label: '💼 Repositories' },
     { id: 'gallery', label: '🖼️ Visual Sandbox' },
@@ -162,10 +164,17 @@ export function AdminOverlay() {
               </div>
             )}
 
+            {/* 🚀 NEW GRADUATION CMS MOUNT POINT */}
+            {activeTab === 'graduation' && (
+              <div className="animate-fadeIn">
+                <AdminGraduationManager />
+              </div>
+            )}
+
             {/* ABOUT NARRATIVE TAB PANEL */}
-              {activeTab === 'about' && (
-                <AdminAboutManager />
-              )}
+            {activeTab === 'about' && (
+              <AdminAboutManager />
+            )}
 
             {/* REPOSITORIES WORK TAB PANEL */}
             {activeTab === 'projects' && (
@@ -173,14 +182,14 @@ export function AdminOverlay() {
                 <AdminProjectsManager />
               </div>
             )}
-                      {/* VISUAL SANDBOX TAB PANEL */}
+
+            {/* VISUAL SANDBOX TAB PANEL */}
             {activeTab === 'gallery' && (
               <div className="animate-fadeIn">
                 <AdminGalleryManager />
               </div>
             )}
-
-                        {/* PARAMETERS & CRITICAL SETTINGS TAB PANEL */}
+            {/* PARAMETERS & CRITICAL SETTINGS TAB PANEL */}
             {activeTab === 'settings' && (
               <div className="space-y-6 animate-fadeIn">
                 <div>
@@ -212,7 +221,6 @@ export function AdminOverlay() {
                       />
                     </div>
 
-                    {/* Integrated Dynamic Exporter Button Trigger (Restored) */}
                     <button
                       type="button"
                       onClick={() => {
@@ -241,7 +249,6 @@ export function AdminOverlay() {
                   <div className="space-y-4">
                     <div className="p-4 bg-zinc-900/30 border border-zinc-800/60 rounded-xl flex flex-col items-center justify-center gap-3 text-center">
                       <div className="p-3 bg-white rounded-xl inline-block shadow-lg">
-                        {/* We pull in the modern inline canvas vector renderer directly */}
                         <svg id="settingsExportableQRCodeSVG" width="120" height="120" viewBox="0 0 29 29" shapeRendering="crispEdges" className="block">
                           <path fill="#ffffff" d="M0 0h29v29H0z"/>
                           <path stroke="#09090b" d="M0 0h7v1H0zm22 0h7v1h-7zM0 1h1v5H0zm6 0h1v5H6zm16 0h1v5h-1zm6 0h1v5h-1zM1 2h4v1H1zm22 0h4v1h-4zM1 3h4v1H1zm22 0h4v1h-4zM1 4h4v1H1zm22 0h4v1h-4zM0 6h7v1H0zm22 0h7v1h-7zM8 8h1v1H8zm2 0h2v1h-2zm4 0h1v2h-1zm2 0h2v1h-2zm3 0h1v1h-1zm3 0h1v2h-1zm-11 1h1v1h-1zm4 0h3v1h-3zm5 0h1v1h-1zm-15 1h2v1H3zm3 0h2v1H6zm4 0h1v1h-1zm4 0h1v1h-1zm3 0h1v2h-1zm2 0h1v1h-1zm-13 1h1v1H4zm3 0h1v1H7zm1 0h1v1H8zm5 0h1v1h-1zm3 0h1v1h-1zm4 0h1v1h-1zm-14 1h1v1H5zm3 0h2v1H8zm4 0h1v1h-1zm2 0h1v1h-1zm4 0h1v1h-1zm-16 1h7v1H1zm9 0h2v1h-2zm3 0h1v1h-1zm5 0h3v1h-3zm-17 1h1v5H1zm6 0h1v5H6zm3 0h1v1H9zm2 0h1v1h-1zm4 0h3v1h-3zm5 0h1v2h-1zm-12 1h1v1h-1zm3 0h1v1h-1zm2 0h1v2h-1zm4 0h1v1h-1zm-11 1h4v1H2zm7 0h1v1H9zm6 0h1v1h-1zm5 0h1v1h-1zm-18 1h4v1H2zm6 0h2v1H8zm5 0h2v1h-2zm4 0h1v1h-1zm-17 1h4v1H2zm5 0h1v1H7zm4 0h1v1h-1zm2 0h3v1h-3zm5 0h2v1h-2zm-17 1h7v1H1zm9 0h1v1H9zm2 0h1v1h-1zm3 0h4v1h-4zm5 0h2v1h-2z"/>
@@ -252,7 +259,6 @@ export function AdminOverlay() {
                       </p>
                     </div>
 
-                    {/* Cryptographic Key Update Form Panel */}
                     <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl space-y-3">
                       <div className="space-y-1">
                         <label className="text-[11px] font-mono text-zinc-400 block font-medium">Rotate Console Access PIN Code</label>
@@ -309,7 +315,7 @@ export function AdminOverlay() {
                     </div>
                   </div>
 
-                </div>
+                </div> {/* 🚀 FIXED: Closed the setting grid wrapper container completely */}
               </div>
             )}
 

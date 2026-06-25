@@ -1,6 +1,7 @@
 import { useThemeStore, dimensionPacks } from '../../store/themeStore';
 import MagicRings from '../ui/MagicRings';
 
+
 export function Hero() {
   const { currentDimension } = useThemeStore();
   const pack = dimensionPacks[currentDimension];

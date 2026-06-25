@@ -1,18 +1,9 @@
 import { usePortfolioStore } from '../../store/portfolioStore';
-import { CardSwap, Card } from '../ui/CardSwapDeck';
+import { CardSwap, Card, renderIconSVG } from '../ui/CardSwapDeck';
 
 export function About() {
   const data = usePortfolioStore((state) => state.data?.about);
   if (!data) return null;
-
-  const getPublicIconClass = (iconCode: string) => {
-    const clean = (iconCode || '').toLowerCase().trim();
-    if (!clean) return 'devicon-code-plain text-zinc-500';
-    if (clean === 'js' || clean === 'javascript') return 'devicon-javascript-plain colored';
-    if (clean === 'ts' || clean === 'typescript') return 'devicon-typescript-plain colored';
-    if (clean === 'tailwind' || clean === 'tailwindcss') return 'devicon-tailwindcss-original colored';
-    return `devicon-${clean}-plain colored`;
-  };
 
   return (
     <section className="space-y-8 py-10" id="about">
@@ -34,7 +25,7 @@ export function About() {
             {data.skills.map((skill, idx) => (
               <Card key={idx} className="flex flex-col items-center justify-center gap-4 text-center select-none">
                 <div className="w-14 h-14 bg-zinc-900 border border-zinc-800/80 rounded-xl flex items-center justify-center shadow-inner">
-                  <i className={`${getPublicIconClass(skill.iconCode)} text-3xl`} />
+                  {renderIconSVG(skill.iconCode)}
                 </div>
                 <div className="space-y-1">
                   <h4 className="text-xs font-mono font-bold text-zinc-200 tracking-tight">{skill.name}</h4>

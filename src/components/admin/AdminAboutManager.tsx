@@ -1,4 +1,5 @@
 import { usePortfolioStore } from '../../store/portfolioStore';
+import { renderIconSVG } from '../ui/CardSwapDeck';
 
 export function AdminAboutManager() {
   const { draft, updateDraft } = usePortfolioStore();
@@ -7,19 +8,6 @@ export function AdminAboutManager() {
 
   const triggerFormat = (command: string) => {
     document.execCommand(command, false, '');
-  };
-
-  const getIconClass = (code: string) => {
-    const clean = (code || '').toLowerCase().trim();
-    if (!clean) return 'devicon-code-plain text-zinc-600';
-    if (clean === 'react') return 'devicon-react-original colored text-lg';
-    if (clean === 'ts' || clean === 'typescript') return 'devicon-typescript-plain colored text-lg';
-    if (clean === 'tailwind' || clean === 'tailwindcss') return 'devicon-tailwindcss-original colored text-lg';
-    if (clean === 'js' || clean === 'javascript') return 'devicon-javascript-plain colored text-lg';
-    if (clean === 'node' || clean === 'nodejs') return 'devicon-nodejs-plain colored text-lg';
-    if (clean === 'html' || clean === 'html5') return 'devicon-html5-plain colored text-lg';
-    if (clean === 'css' || clean === 'css3') return 'devicon-css3-plain colored text-lg';
-    return `devicon-${clean}-plain colored text-lg`;
   };
 
   return (
@@ -67,7 +55,7 @@ export function AdminAboutManager() {
             {draft.about.skills.map((skill, sIdx) => (
               <div key={sIdx} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-zinc-900/40 border border-zinc-800/80 p-3 rounded-xl group relative">
                 <div className="w-10 h-10 bg-zinc-950 rounded-lg border border-zinc-800 flex items-center justify-center shrink-0">
-                  <i className={getIconClass(skill.iconCode)} />
+                  {renderIconSVG(skill.iconCode)}
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3 flex-1">

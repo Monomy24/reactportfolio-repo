@@ -1,64 +1,224 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, {
+  Children,
+  cloneElement,
+  forwardRef,
+  isValidElement,
+  useEffect,
+  useMemo,
+  useRef
+} from 'react';
+import type { ReactElement, ReactNode, RefObject } from 'react';
+import gsap from 'gsap';
 
-interface SkillItem {
-  name: string;
-  iconCode: string;
+export interface CardSwapProps {
+  width?: number | string;
+  height?: number | string;
+  cardDistance?: number;
+  verticalDistance?: number;
+  delay?: number;
+  pauseOnHover?: boolean;
+  onCardClick?: (idx: number) => void;
+  skewAmount?: number;
+  easing?: 'linear' | 'elastic';
+  children: ReactNode;
 }
 
-interface CardSwapDeckProps {
-  skills: SkillItem[];
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  customClass?: string;
 }
 
-export function CardSwapDeck({ skills }: CardSwapDeckProps) {
-  const [index, setIndex] = useState(0);
+export const Card = forwardRef<HTMLDivElement, CardProps>(({ customClass, ...rest }, ref) => (
+  <div
+    ref={ref}
+    {...rest}
+    className={`absolute top-1/2 left-1/2 rounded-xl border border-zinc-800 bg-zinc-950/95 p-6 flex flex-col items-center justify-center gap-4 shadow-2xl shadow-black/80 transform-3d will-change-transform backface-hidden ${customClass ?? ''} ${rest.className ?? ''}`.trim()}
+  />
+));
+Card.displayName = 'Card';
+
+type CardRef = RefObject<HTMLDivElement | null>;
+interface Slot {
+  x: number;
+  y: number;
+  z: number;
+  zIndex: number;
+}
+
+const makeSlot = (i: number, distX: number, distY: number, total: number): Slot => ({
+  x: i * distX,
+  y: -i * distY,
+  z: -i * distX * 1.5,
+  zIndex: total - i
+});
+
+const placeNow = (el: HTMLElement, slot: Slot, skew: number) =>
+  gsap.set(el, {
+    x: slot.x,
+    y: slot.y,
+    z: slot.z,
+    xPercent: -50,
+    yPercent: -50,
+    skewY: skew,
+    transformOrigin: 'center center',
+    zIndex: slot.zIndex,
+    force3D: true
+  });
+
+export const CardSwap: React.FC<CardSwapProps> = ({
+  width = 240,
+  height = 200,
+  cardDistance = 15,
+  verticalDistance = 15,
+  delay = 3500,
+  pauseOnHover = true,
+  onCardClick,
+  skewAmount = -4,
+  easing = 'elastic',
+  children
+}) => {
+  const config = useMemo(() => 
+    easing === 'elastic'
+      ? {
+          ease: 'elastic.out(0.6,0.9)',
+          durDrop: 1.2,
+          durMove: 0.8,
+          durReturn: 1.2,
+          promoteOverlap: 0.8,
+          returnDelay: 0.1
+        }
+      : {
+          ease: 'power1.inOut',
+          durDrop: 0.6,
+          durMove: 0.5,
+          durReturn: 0.6,
+          promoteOverlap: 0.45,
+          returnDelay: 0.2
+        }, [easing]);
+
+  const childArr = useMemo(() => Children.toArray(children) as ReactElement<CardProps>[], [children]);
+  const refs = useMemo<CardRef[]>(() => childArr.map(() => React.createRef<HTMLDivElement>()), [childArr.length]);
+  const order = useRef<number[]>([]);
 
   useEffect(() => {
-    if (skills.length <= 1) return;
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % skills.length);
-    }, 3200); // Automatically cycles card frames every 3.2 seconds
-    return () => clearInterval(interval);
-  }, [skills.length]);
+    order.current = Array.from({ length: childArr.length }, (_, i) => i);
+  }, [childArr.length]);
 
-  if (!skills || skills.length === 0) return null;
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const intervalRef = useRef<number>(0);
+  const container = useRef<HTMLDivElement>(null);
 
-  // Helper engine to fetch matching vector classes
-  const getIconClass = (code: string) => {
-    const clean = (code || '').toLowerCase().trim();
-    if (clean === 'react') return 'devicon-react-original colored';
-    if (clean === 'ts' || clean === 'typescript') return 'devicon-typescript-plain colored';
-    if (clean === 'tailwind' || clean === 'tailwindcss') return 'devicon-tailwindcss-original colored';
-    if (clean === 'js' || clean === 'javascript') return 'devicon-javascript-plain colored';
-    if (clean === 'node' || clean === 'nodejs') return 'devicon-nodejs-plain colored';
-    if (clean === 'html' || clean === 'html5') return 'devicon-html5-plain colored';
-    if (clean === 'css' || clean === 'css3') return 'devicon-css3-plain colored';
-    return 'devicon-code-plain text-zinc-500';
-  };
+  useEffect(() => {
+    if (refs.length === 0) return;
+    const total = refs.length;
+    refs.forEach((r, i) => {
+      if (r.current) placeNow(r.current, makeSlot(i, cardDistance, verticalDistance, total), skewAmount);
+    });
 
-  const currentSkill = skills[index];
+    const swap = () => {
+      if (order.current.length < 2) return;
+
+      const [front, ...rest] = order.current;
+      const elFront = refs[front]?.current;
+      if (!elFront) return;
+
+      const tl = gsap.timeline();
+      tlRef.current = tl;
+
+      tl.to(elFront, {
+        y: '+=400',
+        opacity: 0,
+        duration: config.durDrop,
+        ease: config.ease
+      });
+
+      tl.addLabel('promote', `-=${config.durDrop * config.promoteOverlap}`);
+      rest.forEach((idx, i) => {
+        const el = refs[idx]?.current;
+        if (!el) return;
+        const slot = makeSlot(i, cardDistance, verticalDistance, refs.length);
+        tl.set(el, { zIndex: slot.zIndex }, 'promote');
+        tl.to(
+          el,
+          {
+            x: slot.x,
+            y: slot.y,
+            z: slot.z,
+            duration: config.durMove,
+            ease: config.ease
+          },
+          `promote+=${i * 0.1}`
+        );
+      });
+
+      const backSlot = makeSlot(refs.length - 1, cardDistance, verticalDistance, refs.length);
+      tl.addLabel('return', `promote+=${config.durMove * config.returnDelay}`);
+      tl.call(
+        () => {
+          gsap.set(elFront, { zIndex: backSlot.zIndex });
+        },
+        undefined,
+        'return'
+      );
+      tl.to(
+        elFront,
+        {
+          x: backSlot.x,
+          y: backSlot.y,
+          z: backSlot.z,
+          opacity: 1,
+          duration: config.durReturn,
+          ease: config.ease
+        },
+        'return'
+      );
+
+      tl.call(() => {
+        order.current = [...rest, front];
+      });
+    };
+
+    intervalRef.current = window.setInterval(swap, delay);
+
+    if (pauseOnHover) {
+      const node = container.current;
+      if (node) {
+        const pause = () => {
+          tlRef.current?.pause();
+          clearInterval(intervalRef.current);
+        };
+        const resume = () => {
+          tlRef.current?.play();
+          intervalRef.current = window.setInterval(swap, delay);
+        };
+        node.addEventListener('mouseenter', pause);
+        node.addEventListener('mouseleave', resume);
+        return () => {
+          node.removeEventListener('mouseenter', pause);
+          node.removeEventListener('mouseleave', resume);
+          clearInterval(intervalRef.current);
+        };
+      }
+    }
+    return () => clearInterval(intervalRef.current);
+  }, [cardDistance, verticalDistance, delay, pauseOnHover, skewAmount, config, refs]);
+
+  const rendered = childArr.map((child, i) =>
+    isValidElement<CardProps>(child)
+      ? cloneElement(child, {
+          key: i,
+          ref: refs[i],
+          style: { width, height, ...(child.props.style ?? {}) },
+          onClick: e => {
+            child.props.onClick?.(e as React.MouseEvent<HTMLDivElement>);
+            onCardClick?.(i);
+          }
+        } as CardProps & React.RefAttributes<HTMLDivElement>)
+      : child
+  );
 
   return (
-    <div className="relative w-full h-48 flex items-center justify-center perspective-1000 select-none">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, scale: 0.82, rotateY: -15, z: -40 }}
-          animate={{ opacity: 1, scale: 1, rotateY: 0, z: 0 }}
-          exit={{ opacity: 0, scale: 0.9, rotateY: 15, z: -20 }}
-          transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
-          className="absolute w-full max-w-[240px] h-40 bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-6 flex flex-col items-center justify-center gap-4 shadow-2xl shadow-black/50 preserve-3d"
-        >
-          {/* Circular Icon Container */}
-          <div className="w-16 h-16 bg-zinc-950 border border-zinc-800/60 rounded-xl flex items-center justify-center shadow-inner">
-            <i className={`${getIconClass(currentSkill.iconCode)} text-3xl block`} />
-          </div>
-          <div className="text-center space-y-1">
-            <h4 className="text-sm font-mono font-bold text-zinc-100 tracking-tight">{currentSkill.name}</h4>
-            <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Toolkit Module</p>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+    <div ref={container} className="relative overflow-visible" style={{ width, height }}>
+      {rendered}
     </div>
   );
-}
+};

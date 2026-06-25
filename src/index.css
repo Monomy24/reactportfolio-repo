@@ -32,3 +32,15 @@
 .animate-fadeIn {
   animation: fadeIn 0.3s cubic-bezier(0.21, 1.02, 0.43, 1.01) forwards;
 }
+/* Force Devicon vector shapes to render font glyph frames properly */
+.colored, [class^="devicon-"], [class*=" devicon-"] {
+  font-family: "devicon" !important;
+  speak: none;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block !important;
+}

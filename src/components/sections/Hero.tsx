@@ -1,50 +1,61 @@
+// src/components/sections/Hero.tsx
+
 import { useThemeStore, dimensionPacks } from '../../store/themeStore';
+import { usePortfolioStore } from '../../store/portfolioStore'; // 🚀 LIGHTWEIGHT SOURCE HOOK INTEGRATION
 import MagicRings from '../ui/MagicRings';
 
-
 export function Hero() {
+  /* ==========================================================================
+     1. WORKSPACE STATE & THEME PROPERTY SUBSCRIPTIONS
+     ========================================================================== */
   const { currentDimension } = useThemeStore();
   const pack = dimensionPacks[currentDimension];
+
+  // Subscribe dynamically to your global live backend database values matrix
+  const { data } = usePortfolioStore();
 
   const avatarBg = currentDimension === 'creamy' 
     ? 'bg-stone-900 border-stone-300/40 text-stone-100 shadow-[0_20px_50px_rgba(40,40,40,0.15)]' 
     : 'bg-zinc-900/90 border-zinc-800/80 text-zinc-400 shadow-2xl';
 
   // ADAPTIVE MAGIC RINGS CONFIGURATIONS:
-  // Dynamically feeds palette arrays matching the active workspace portal
   const ringConfig = {
     cosmic: { color: '#10b981', colorTwo: '#34d399', ringCount: 5, speed: 0.6 },
     arctic: { color: '#B069DB', colorTwo: '#22d3ee', ringCount: 6, speed: 1.0 },
-    // CREAM DIMENSION: Fires warm pastel yellow loops circling the matte avatar canvas
     creamy: { color: '#FFEE8C', colorTwo: '#f43f5e', ringCount: 4, speed: 0.8 }
   }[currentDimension] || { color: '#10b981', colorTwo: '#34d399', ringCount: 5, speed: 0.6 };
 
-    return (
+  /* ==========================================================================
+     2. DYNAMIC CONTENT FAILSAFE BINDINGS
+     ========================================================================== */
+  // Provide fallback default texts if database arrays haven't completed loading yet
+  const title = data?.hero.title || "Bachelor of Science in Information Systems";
+  const name = data?.hero.name || "Christian John K. Lague";
+  const tagline = data?.hero.tagline || "Building responsive, modern, and interactive digital ecosystems.";
+  const profileImage = data?.hero.profileImage;
+
+  return (
     <section className="flex flex-col-reverse md:flex-row items-center justify-between gap-12 min-h-[65vh] py-12">
       
-      {/* LEFT COLUMN: Content Blocks */}
+      {/* LEFT COLUMN: LIVE DYNAMIC CONTENT TEXT BLOCKS */}
       <div className="flex-1 flex flex-col items-start justify-center">
         <span className="text-xs font-bold tracking-widest text-emerald-500 uppercase font-mono mb-4">
-          Bachelor of Science in Information Systems
+          {title}
         </span>
         
         <h1 className={`text-4xl md:text-6xl font-extrabold tracking-tight mb-6 ${pack.textPrimary}`}>
-          Christian John K. Lague
+          {name}
         </h1>
         
         <p className={`text-lg md:text-xl max-w-2xl font-normal leading-relaxed ${pack.textSecondary}`}>
-          Building responsive, modern, and interactive digital ecosystems.
+          {tagline}
         </p>
       </div>
 
-      {/* RIGHT COLUMN: Profile Picture Circle Wrapper */}
+      {/* RIGHT COLUMN: PROFILE PICTURE CLOUD ASSET CANVAS */}
       <div className="flex items-center justify-center relative w-72 h-72 md:w-80 md:h-80 select-none group">
         
-        {/* 
-          SENIOR DEV FIX: Expanded dimensions from w-full h-full to a massive absolute 
-          canvas block width/height (w-[180%] h-[180%]) to eliminate side clipping.
-          Added mask-image to smoothly fade out edges before hitting any physical borders.
-        */}
+        {/* PARALLAX RINGS CANVAS OVERLAY LAYOUT */}
         <div 
           className="absolute pointer-events-none z-0 w-[180%] h-[180%] -top-[40%] -left-[40%]"
           style={{
@@ -59,8 +70,8 @@ export function Hero() {
             speed={ringConfig.speed}
             attenuation={11}
             lineThickness={1.8}
-            baseRadius={0.25}       // PRO FIX: Reduced base radius inside the shader so rings don't pop out too fast
-            radiusStep={0.06}       // PRO FIX: Narrowed steps for tighter, more elegant aura clustering
+            baseRadius={0.25}       
+            radiusStep={0.06}       
             scaleRate={0.10}
             opacity={0.85}
             blur={0}
@@ -77,17 +88,29 @@ export function Hero() {
           />
         </div>
 
-        {/* Center Profile Picture Frame Placeholder */}
+        {/* 
+          🚀 FIXED LIVE CONTAINER: Renders your crisp Vercel Blob cloud URL path strings 
+          dynamically inside a standard web-optimized HTML img layout node.
+        */}
         <div 
-          className={`w-64 h-64 md:w-72 md:h-72 rounded-full border flex items-center justify-center text-center p-6 transition-all duration-500 relative z-10 cursor-pointer ${avatarBg}`}
+          className={`w-64 h-64 md:w-72 md:h-72 rounded-full border flex items-center justify-center text-center transition-all duration-500 relative z-10 overflow-hidden ${avatarBg}`}
         >
-          <span className="font-mono text-xs uppercase tracking-widest opacity-40">
-            [ Profile Photo ]
-          </span>
+          {profileImage ? (
+            <img 
+              src={profileImage} 
+              alt={`${name} Profile Avatar`} 
+              loading="eager" // Load first-fold portfolio hero graphic instantly without lag
+              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            />
+          ) : (
+            // Elegant fallback text token if no image properties exist in public/data.json
+            <span className="font-mono text-xs uppercase tracking-widest opacity-40 p-6">
+              [ No Photo Loaded ]
+            </span>
+          )}
         </div>
       </div>
 
     </section>
   );
 }
-

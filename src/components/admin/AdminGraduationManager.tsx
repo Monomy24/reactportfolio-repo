@@ -1,9 +1,12 @@
-import React from 'react';
+// src/components/admin/AdminGraduationManager.tsx
+import React, { useState } from 'react';
 import { usePortfolioStore } from '../../store/portfolioStore';
 import { FiAward, FiEye, FiEyeOff, FiUpload } from 'react-icons/fi';
+import { optimizeImage } from '../../utils/imageOptimizer'; // Imported utility
 
 export function AdminGraduationManager() {
   const { draft, updateDraft } = usePortfolioStore();
+  const [isUploading, setIsUploading] = useState(false); // Tracks cloud upload state
 
   if (!draft) return null;
   
@@ -13,7 +16,7 @@ export function AdminGraduationManager() {
     title: "Welcome to My Digital Portal! 👋",
     subtitle: "BS in Information Systems — Graduating Tomorrow!",
     message: '"Information Systems is about engineering solutions that connect human intent with computing potential."',
-    gcashUrl: "" // This holds your base64 uploaded picture
+    gcashUrl: "" // This will now hold your clean CDN link string!
   };
 
   const graduation = draft.graduation ?? defaultGraduation;
@@ -27,20 +30,7 @@ export function AdminGraduationManager() {
     });
   };
 
-  const readImageFileAsDataURL = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error('Failed to read image data.'));
-        }
-      };
-      reader.onerror = () => reject(reader.error ?? new Error('Image file read failed.'));
-      reader.readAsDataURL(file);
-    });
-
+  // REFACTORED: Heavy client-side processing replaced with lightweight serverless upload pipeline
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -51,40 +41,36 @@ export function AdminGraduationManager() {
     }
 
     try {
-      const dataUrl = await readImageFileAsDataURL(file);
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const MAX_DIM = 1000;
+      setIsUploading(true);
 
-        if (width > height) {
-          if (width > MAX_DIM) {
-            height = Math.round((height * MAX_DIM) / width);
-            width = MAX_DIM;
-          }
-        } else if (height > MAX_DIM) {
-          width = Math.round((width * MAX_DIM) / height);
-          height = MAX_DIM;
-        }
+      // 1. Optimize locally into standard modern WebP
+      const optimizedBlob = await optimizeImage(file, 1000, 0.75);
+      
+      // 2. Clear out specialized filename markers
+      const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, "-");
+      const filename = `${Date.now()}-${cleanName}.webp`;
 
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          alert('Unable to process the image for upload.');
-          return;
-        }
+      // 3. Post binary data straight to Vercel Blob API route
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        headers: {
+          'x-filename': filename,
+          'Content-Type': 'image/webp',
+        },
+        body: optimizedBlob,
+      });
 
-        ctx.drawImage(img, 0, 0, width, height);
-        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-        handleFieldUpdate('gcashUrl', compressedBase64);
-      };
-      img.onerror = () => alert('Unable to load the selected image file.');
-      img.src = dataUrl;
+      if (!response.ok) throw new Error(`Upload failed (${response.status})`);
+      
+      const blobResult = await response.json();
+      
+      // 4. Save clean URL directly to Zustand draft
+      handleFieldUpdate('gcashUrl', blobResult.url);
+      
     } catch (err: any) {
-      alert(`Image processing failed: ${err?.message ?? 'Unknown error'}`);
+      alert(`Cloud upload failed: ${err?.message ?? 'Unknown error'}`);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -123,16 +109,16 @@ export function AdminGraduationManager() {
           />
         </div>
 
-        {/* PURE IMAGE UPLOADER SLOT */}
+        {/* UPDATED IMAGE UPLOADER SLOT */}
         <div className="flex flex-col gap-1.5">
           <label className="text-zinc-400">Upload Celebration Picture</label>
           <div className="flex items-center gap-3">
-            <label className="flex-1 flex items-center justify-center gap-2 bg-zinc-950 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/50 transition-colors rounded p-2.5 cursor-pointer text-zinc-400">
-              <FiUpload className="text-sm text-emerald-400" />
-              <span>{graduation.gcashUrl ? 'Change Picture' : 'Choose Picture'}</span>
-              <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+            <label className={`flex-1 flex items-center justify-center gap-2 bg-zinc-950 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/50 transition-colors rounded p-2.5 cursor-pointer text-zinc-400 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <FiUpload className={`text-sm ${isUploading ? 'animate-spin text-zinc-400' : 'text-emerald-400'}`} />
+              <span>{isUploading ? 'Optimizing & Uploading...' : graduation.gcashUrl ? 'Change Picture' : 'Choose Picture'}</span>
+              <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={isUploading} />
             </label>
-            {graduation.gcashUrl && (
+            {graduation.gcashUrl && !isUploading && (
               <div className="w-10 h-10 bg-zinc-950 border border-zinc-700 rounded overflow-hidden p-0.5">
                 <img src={graduation.gcashUrl} alt="Preview" className="w-full h-full object-cover" />
               </div>

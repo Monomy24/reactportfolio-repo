@@ -1,25 +1,36 @@
+// src/components/admin/AdminOverlay.tsx
+
 import { useState, useEffect } from 'react';
 import { usePortfolioStore } from '../../store/portfolioStore';
 import { AdminProjectsManager } from './AdminProjectsManager';
 import { AdminGalleryManager } from './AdminGalleryManager';
 import { AdminAboutManager } from './AdminAboutManager';
-
-// 🚀 SENIOR DEV INJECTION: Clean isolated import for your Graduation manager panel
 import { AdminGraduationManager } from './AdminGraduationManager';
+import { optimizeImage } from '../../utils/imageOptimizer'; // 🚀 LIGHTWEIGHT UTILITY: Client-side compression script
 
+// Strict mapping type dictionary for application workspace tab-routing matrices
 type AdminTab = 'hero' | 'graduation' | 'about' | 'projects' | 'gallery' | 'settings';
 
 export function AdminOverlay() {
+  /* ==========================================================================
+     1. APPLICATION CORE RUNTIME VARIABLES & HOOK STATES
+     ========================================================================== */
   const [isOpen, setIsOpen] = useState(false);
   const [pin, setPin] = useState('');
   const [activeTab, setActiveTab] = useState<AdminTab>('hero');
-  
+  const [isUploading, setIsUploading] = useState(false); // Tracks current avatar media binary cloud upload streams
+
+  // Destructure central reactive application Zustand state engines
   const { 
     isAuthenticated, setAuthenticated, draft, updateDraft, 
     data, isSaving, setSaving, setPortfolioData 
   } = usePortfolioStore();
 
+  /* ==========================================================================
+     2. AUTOMATED HASH-ROUTER SYNCHRONIZATION RUNTIME
+     ========================================================================== */
   useEffect(() => {
+    // Listens explicitly for URL hash mutations to conditionally toggle administration view frames
     const handleHashChange = () => setIsOpen(window.location.hash === '#admin');
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
@@ -28,13 +39,21 @@ export function AdminOverlay() {
 
   if (!isOpen) return null;
 
+  /* ==========================================================================
+     3. CRYPTOGRAPHIC ACCESS TOKEN CHECKSUM VERIFIER
+     ========================================================================== */
   const verifyPin = async () => {
     if (!data?.settings.pinHash) return;
+    
+    // In-browser string hashing utilizing native Web Crypto API subtle digest engines (SHA-256)
     const encoder = new TextEncoder();
     const encodedPin = encoder.encode(pin);
     const hashBuffer = await crypto.subtle.digest('SHA-256', encodedPin);
-    const calculatedHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const calculatedHash = Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
 
+    // Evaluates dynamic hash parameters with hardcoded development bypass code strings
     if (calculatedHash === data.settings.pinHash || pin === '1234') {
       setAuthenticated(true);
     } else {
@@ -43,21 +62,10 @@ export function AdminOverlay() {
     }
   };
 
-  const readImageFileAsDataURL = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error('Failed to read image data.'));
-        }
-      };
-      reader.onerror = () => reject(reader.error ?? new Error('Image file read failed.'));
-      reader.readAsDataURL(file);
-    });
-
-  const processImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
+  /* ==========================================================================
+     4. HIGH PERFORMANCE BINARY IMAGE SYNC ROUTE
+     ========================================================================== */
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -67,25 +75,59 @@ export function AdminOverlay() {
     }
 
     try {
-      const dataUrl = await readImageFileAsDataURL(file);
-      callback(dataUrl);
+      setIsUploading(true);
+
+      // Transforms image down into a optimized WebP blob context directly inside client browser runtime
+      const optimizedBlob = await optimizeImage(file, 500, 0.8);
+      
+      // Clean target filenames of local file system special metadata signatures prior to deployment
+      const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, "-");
+      const filename = `${Date.now()}-${cleanName}.webp`;
+
+      // Dispatch binary body payload directly onto local Vercel Serverless proxy API uploads endpoint
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        headers: {
+          'x-filename': filename,
+          'Content-Type': 'image/webp',
+        },
+        body: optimizedBlob,
+      });
+
+      if (!response.ok) throw new Error(`Upload processing failed (${response.status})`);
+      const blobResult = await response.json();
+
+      // Mutate local state tree parameters mapping values safely to the hosted Vercel Blob public asset URL
+      updateDraft(d => { 
+        d.hero.profileImage = blobResult.url; 
+      });
+
     } catch (err: any) {
-      alert(`Image reading failed: ${err?.message ?? 'Unknown error'}`);
+      alert(`Cloud Upload Error: ${err?.message ?? 'Unknown context'}`);
+    } finally {
+      setIsUploading(false);
     }
   };
 
+  /* ==========================================================================
+     5. UPSTREAM PRODUCTION COMMIT GENERATION CONTROLLER
+     ========================================================================== */
   const handleSaveChanges = async () => {
     if (!draft) return;
     if (!window.confirm('Commit modifications and trigger production rebuild deployment?')) return;
 
     try {
       setSaving(true);
+      
+      // Transmit sanitized text-only JSON structures via Git proxy serverless architectures
       const response = await fetch('/api/save-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: draft }),
       });
       if (!response.ok) throw new Error('Could not persist content modifications upstream.');
+      
+      // Merge active local production data view state layouts with validated changes immediately
       setPortfolioData(draft);
       alert('Content synchronized successfully. Deployment triggered.');
     } catch (err: any) {
@@ -94,6 +136,10 @@ export function AdminOverlay() {
       setSaving(false);
     }
   };
+
+  /* ==========================================================================
+     6. LOCKED GATEKEEPER UI ACCESS SHIELD
+     ========================================================================== */
   if (!isAuthenticated) {
     return (
       <div className="fixed inset-0 bg-zinc-950 z-50 flex items-center justify-center p-4">
@@ -102,43 +148,58 @@ export function AdminOverlay() {
             <h3 className="text-xl font-bold tracking-tight">Admin System Terminal</h3>
             <p className="text-xs font-mono text-zinc-500">Provide authorization PIN key to continue</p>
           </div>
-          <input type="password" value={pin} onChange={(e) => setPin(e.target.value)} maxLength={4} className="w-full text-center text-2xl tracking-widest bg-zinc-950 border border-zinc-800 py-3 rounded-xl focus:border-emerald-500 font-mono text-emerald-400 outline-none" placeholder="••••" />
-          <button onClick={verifyPin} className="w-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-semibold py-3 rounded-xl transition-colors text-sm">Authenticate Session</button>
-          <button onClick={() => { window.location.hash = ''; }} className="text-xs font-mono text-zinc-500 hover:text-zinc-400">Exit Workspace</button>
+          <input 
+            type="password" 
+            value={pin} 
+            onChange={(e) => setPin(e.target.value)} 
+            maxLength={4} 
+            className="w-full text-center text-2xl tracking-widest bg-zinc-950 border border-zinc-800 py-3 rounded-xl focus:border-emerald-500 font-mono text-emerald-400 outline-none" 
+            placeholder="••••" 
+          />
+          <button onClick={verifyPin} className="w-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-semibold py-3 rounded-xl transition-colors text-sm">
+            Authenticate Session
+          </button>
+          <button onClick={() => { window.location.hash = ''; }} className="text-xs font-mono text-zinc-500 hover:text-zinc-400">
+            Exit Workspace
+          </button>
         </div>
       </div>
     );
   }
 
+  // Structural mapping dictionary mapping options configured on control row tabs
   const tabsConfig: { id: AdminTab; label: string }[] = [
     { id: 'hero', label: '👤 Hero Profile' },
-    // 🚀 NEW TAB MODULAR SELECTION REGISTERED HERE
     { id: 'graduation', label: '🎓 Graduation CMS' },
     { id: 'about', label: '📝 About Narrative' },
     { id: 'projects', label: '💼 Repositories' },
     { id: 'gallery', label: '🖼️ Visual Sandbox' },
     { id: 'settings', label: '⚙️ Parameters' },
   ];
-
+  /* ==========================================================================
+     7. MAIN ADMINISTRATIVE CONSOLE PRESENTATION ENGINE
+     ========================================================================== */
   return (
     <div className="fixed inset-0 bg-zinc-950/95 backdrop-blur-md z-50 overflow-y-auto p-4 sm:p-8">
       <div className="max-w-4xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-10 space-y-8 shadow-2xl flex flex-col min-h-[85vh]">
         
-        {/* Dynamic Navigation Dashboard Controls */}
+        {/* SECTION 7.1: SYSTEM TITLE & PERSISTENCE CONTROL TRACKERS */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-zinc-800">
           <div>
             <h2 className="text-2xl font-black tracking-tight">Portfolio Engine Console</h2>
             <p className="text-xs font-mono text-emerald-400/80 mt-1">Live staging sandbox session active</p>
           </div>
           <div className="flex gap-3 w-full sm:w-auto">
-            <button onClick={() => { setAuthenticated(false); window.location.hash = ''; }} className="flex-1 sm:flex-none px-4 py-2 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 rounded-xl font-medium text-sm transition-colors">Discard & Close</button>
+            <button onClick={() => { setAuthenticated(false); window.location.hash = ''; }} className="flex-1 sm:flex-none px-4 py-2 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 rounded-xl font-medium text-sm transition-colors">
+              Discard & Close
+            </button>
             <button onClick={handleSaveChanges} disabled={isSaving} className="flex-1 sm:flex-none px-5 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-zinc-800 text-zinc-950 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2">
               {isSaving ? 'Synchronizing...' : 'Commit Updates'}
             </button>
           </div>
         </div>
 
-        {/* Modular Navigation Selector Tabs Array */}
+        {/* SECTION 7.2: DYNAMIC NAVIGATION ROUTER INTERACTIVE TABS */}
         <div className="flex flex-wrap gap-2 border-b border-zinc-800/60 pb-4">
           {tabsConfig.map((tab) => (
             <button
@@ -155,11 +216,12 @@ export function AdminOverlay() {
             </button>
           ))}
         </div>
-        {/* Tab content conditional matching router matrix */}
+
+        {/* SECTION 7.3: CONDITIONAL SUB-MANAGER CONTENT CONTROLLERS */}
         {draft && (
           <div className="flex-1 min-h-[40vh]">
             
-            {/* HERO PROFILE TAB PANEL */}
+            {/* SUB-TAB A: HERO PROFILE DOM NODE WRAPPERS */}
             {activeTab === 'hero' && (
               <div className="space-y-6 animate-fadeIn">
                 <div>
@@ -179,40 +241,54 @@ export function AdminOverlay() {
                     <label className="text-xs font-mono text-zinc-400">Tagline / Mission Pitch</label>
                     <input type="text" value={draft.hero.tagline} onChange={(e) => updateDraft(d => { d.hero.tagline = e.target.value; })} className="w-full bg-zinc-950 border border-zinc-800 p-3 rounded-xl focus:border-emerald-500/50 text-sm outline-none text-zinc-100" />
                   </div>
+                  
+                  {/* MODIFIED: LIGHTWEIGHT AVATAR FILE UPLOADER PIPELINE (NO BASE64 INJECTION) */}
                   <div className="sm:col-span-2 space-y-1">
-                    <label className="text-xs font-mono text-zinc-400">Profile Branding Image (Base64 System Encoding)</label>
-                    <input type="file" accept="image/*" onChange={(e) => processImageUpload(e, (b64) => updateDraft(d => { d.hero.profileImage = b64; }))} className="w-full bg-zinc-950 border border-zinc-800 p-2 rounded-xl text-zinc-400 text-xs focus:border-emerald-500/50" />
+                    <label className="text-xs font-mono text-zinc-400">Profile Branding Image (Vercel Cloud Blob Delivery)</label>
+                    <div className="flex items-center gap-4">
+                      <label className={`flex-1 flex items-center justify-center gap-2 bg-zinc-950 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/50 transition-colors p-3 rounded-xl cursor-pointer text-zinc-400 text-xs ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <span>{isUploading ? 'Compressing & Syncing Cloud CDN...' : draft.hero.profileImage ? 'Replace Active Avatar' : 'Select Display File'}</span>
+                        <input type="file" accept="image/*" onChange={handleHeroImageUpload} className="hidden" disabled={isUploading} />
+                      </label>
+                      {draft.hero.profileImage && !isUploading && (
+                        <div className="w-11 h-11 bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden p-0.5 flex-shrink-0">
+                          <img src={draft.hero.profileImage} alt="Avatar Staging Preview" className="w-full h-full object-cover rounded-lg" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* 🚀 NEW GRADUATION CMS MOUNT POINT */}
+            {/* SUB-TAB B: CELEBRATION GRADUATION MANAGER BLOCK ASSEMBLY */}
             {activeTab === 'graduation' && (
               <div className="animate-fadeIn">
                 <AdminGraduationManager />
               </div>
             )}
 
-            {/* ABOUT NARRATIVE TAB PANEL */}
+            {/* SUB-TAB C: ABOUT NARRATIVE TEXT MANAGER ASSEMBLES */}
             {activeTab === 'about' && (
               <AdminAboutManager />
             )}
 
-            {/* REPOSITORIES WORK TAB PANEL */}
+            {/* SUB-TAB D: WORK PROJECT METADATA MANAGEMENT BLOCKS */}
             {activeTab === 'projects' && (
               <div className="animate-fadeIn">
                 <AdminProjectsManager />
               </div>
             )}
 
-            {/* VISUAL SANDBOX TAB PANEL */}
+            {/* SUB-TAB E: MEDIA SANDBOX AND ASSET CONTROL GALLERIES */}
             {activeTab === 'gallery' && (
               <div className="animate-fadeIn">
                 <AdminGalleryManager />
               </div>
             )}
-            {/* PARAMETERS & CRITICAL SETTINGS TAB PANEL */}
+            /* ==========================================================================
+               SUB-TAB F: SYSTEM CONTROLS & ENVIRONMENT VARIABLES PANEL
+               ========================================================================== */
             {activeTab === 'settings' && (
               <div className="space-y-6 animate-fadeIn">
                 <div>
@@ -220,9 +296,10 @@ export function AdminOverlay() {
                   <p className="text-xs text-zinc-500 font-light mt-0.5">Modify workspace variables, cycle security access signatures, and download brand tokens.</p>
                 </div>
 
+                {/* TWO-COLUMN CONFIGURATION GRID LAYOUT MATRIX */}
                 <div className="p-5 bg-zinc-950/60 border border-zinc-900 rounded-2xl grid sm:grid-cols-2 gap-6 items-start">
                   
-                  {/* Left Column: Input Target Links + Live Download Tool */}
+                  {/* COLUMN 1: TARGET DESTINATION INPUT LINKS + LIVE DOWNLOAD TOOL */}
                   <div className="space-y-4">
                     <div className="space-y-1">
                       <label className="text-[11px] font-mono text-zinc-500">Contact Email Target Address</label>
@@ -233,6 +310,7 @@ export function AdminOverlay() {
                         className="w-full bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
                       />
                     </div>
+                    
                     <div className="space-y-1">
                       <label className="text-[11px] font-mono text-zinc-500">Public Production Domain Target URL</label>
                       <input 
@@ -244,21 +322,27 @@ export function AdminOverlay() {
                       />
                     </div>
 
+                    {/* INTERACTIVE VECTOR GENERATOR AND FORCE ANCHOR TRIGGER MODULE */}
                     <button
                       type="button"
                       onClick={() => {
+                        // Extract target SVG block using precise DOM identity matching
                         const svgElement = document.getElementById('settingsExportableQRCodeSVG');
                         if (!svgElement) return alert('Exporter fault: System vector grid missing.');
                         
+                        // Parse active browser vector memory maps directly into pure XML text strings
                         const svgData = new XMLSerializer().serializeToString(svgElement);
                         const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
                         const svgUrl = URL.createObjectURL(svgBlob);
                         
+                        // Spawn an ephemeral anchor element onto the runtime stack to execute file delivery downloads
                         const downloadAnchor = document.createElement('a');
                         downloadAnchor.href = svgUrl;
                         downloadAnchor.download = 'portfolio-branding-qr.svg';
                         document.body.appendChild(downloadAnchor);
                         downloadAnchor.click();
+                        
+                        // Drop element nodes from layout trees and clear garbage collection allocation references immediately
                         document.body.removeChild(downloadAnchor);
                         URL.revokeObjectURL(svgUrl);
                       }}
@@ -267,11 +351,11 @@ export function AdminOverlay() {
                       ↓ Download Shareable QR Asset (.SVG)
                     </button>
                   </div>
-
-                  {/* Right Column: Dynamic Live Canvas Display Container */}
+                  {/* COLUMN 2: HARDWARE PREVIEW VISUALIZER & CYCLING PROTOCOLS */}
                   <div className="space-y-4">
                     <div className="p-4 bg-zinc-900/30 border border-zinc-800/60 rounded-xl flex flex-col items-center justify-center gap-3 text-center">
                       <div className="p-3 bg-white rounded-xl inline-block shadow-lg">
+                        {/* High-density pixel-aligned SVG vector matrix map schema layout */}
                         <svg id="settingsExportableQRCodeSVG" width="120" height="120" viewBox="0 0 29 29" shapeRendering="crispEdges" className="block">
                           <path fill="#ffffff" d="M0 0h29v29H0z"/>
                           <path stroke="#09090b" d="M0 0h7v1H0zm22 0h7v1h-7zM0 1h1v5H0zm6 0h1v5H6zm16 0h1v5h-1zm6 0h1v5h-1zM1 2h4v1H1zm22 0h4v1h-4zM1 3h4v1H1zm22 0h4v1h-4zM1 4h4v1H1zm22 0h4v1h-4zM0 6h7v1H0zm22 0h7v1h-7zM8 8h1v1H8zm2 0h2v1h-2zm4 0h1v2h-1zm2 0h2v1h-2zm3 0h1v1h-1zm3 0h1v2h-1zm-11 1h1v1h-1zm4 0h3v1h-3zm5 0h1v1h-1zm-15 1h2v1H3zm3 0h2v1H6zm4 0h1v1h-1zm4 0h1v1h-1zm3 0h1v2h-1zm2 0h1v1h-1zm-13 1h1v1H4zm3 0h1v1H7zm1 0h1v1H8zm5 0h1v1h-1zm3 0h1v1h-1zm4 0h1v1h-1zm-14 1h1v1H5zm3 0h2v1H8zm4 0h1v1h-1zm2 0h1v1h-1zm4 0h1v1h-1zm-16 1h7v1H1zm9 0h2v1h-2zm3 0h1v1h-1zm5 0h3v1h-3zm-17 1h1v5H1zm6 0h1v5H6zm3 0h1v1H9zm2 0h1v1h-1zm4 0h3v1h-3zm5 0h1v2h-1zm-12 1h1v1h-1zm3 0h1v1h-1zm2 0h1v2h-1zm4 0h1v1h-1zm-11 1h4v1H2zm7 0h1v1H9zm6 0h1v1h-1zm5 0h1v1h-1zm-18 1h4v1H2zm6 0h2v1H8zm5 0h2v1h-2zm4 0h1v1h-1zm-17 1h4v1H2zm5 0h1v1H7zm4 0h1v1h-1zm2 0h3v1h-3zm5 0h2v1h-2zm-17 1h7v1H1zm9 0h1v1H9zm2 0h1v1h-1zm3 0h4v1h-4zm5 0h2v1h-2z"/>
@@ -282,6 +366,7 @@ export function AdminOverlay() {
                       </p>
                     </div>
 
+                    {/* DYNAMIC SECURITY INTERACTION ROTATOR CARD */}
                     <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl space-y-3">
                       <div className="space-y-1">
                         <label className="text-[11px] font-mono text-zinc-400 block font-medium">Rotate Console Access PIN Code</label>
@@ -289,6 +374,7 @@ export function AdminOverlay() {
                       </div>
                       
                       <div className="flex gap-2">
+                        {/* Numerical secure input with regex key filter abstraction */}
                         <input 
                           type="password"
                           id="newConsolePinInput"
@@ -296,15 +382,18 @@ export function AdminOverlay() {
                           placeholder="••••"
                           className="bg-zinc-950 border border-zinc-800 text-center tracking-widest p-2 rounded-xl text-sm font-mono text-emerald-400 outline-none focus:border-emerald-500/40 w-24"
                           onChange={(e) => {
+                            // Strips away alphanumeric/special key combinations physically on hardware stroke events
                             e.target.value = e.target.value.replace(/\D/g, '');
                           }}
                         />
+                        
                         <button
                           type="button"
                           onClick={async () => {
                             const inputEl = document.getElementById('newConsolePinInput') as HTMLInputElement;
                             const newPin = inputEl?.value;
                             
+                            // Re-evaluate bounds check parameter size validations on click execution
                             if (!newPin || newPin.length !== 4) {
                               alert('Validation Error: Tokens must contain exactly 4 numeric characters.');
                               return;
@@ -313,17 +402,24 @@ export function AdminOverlay() {
                             if (!window.confirm('Are you sure you want to rotate the console parameter signature?')) return;
 
                             try {
+                              // Re-encode plain string configurations down to standard byte-arrays
                               const encoder = new TextEncoder();
                               const binaryData = encoder.encode(newPin);
+                              
+                              // Trigger cryptographic context computations natively via subtle cryptography runtimes
                               const derivedBuffer = await crypto.subtle.digest('SHA-256', binaryData);
+                              
+                              // FIXED: Clean integer base-16 radix argument for standard hex conversion
                               const updatedHexHash = Array.from(new Uint8Array(derivedBuffer))
                                 .map(byte => byte.toString(16).padStart(2, '0'))
                                 .join('');
 
+                              // Inject calculated hash directly back into the remote cloud state mock draft payload
                               updateDraft(d => {
                                 d.settings.pinHash = updatedHexHash;
                               });
 
+                              // Clean input terminals safely
                               inputEl.value = '';
                               alert('Cryptographic hash rotated successfully in sandbox state.');
                             } catch (err: any) {
@@ -338,7 +434,7 @@ export function AdminOverlay() {
                     </div>
                   </div>
 
-                </div> {/* 🚀 FIXED: Closed the setting grid wrapper container completely */}
+                </div> {/* CLOSE GRID: Closing parameters wrapper node grid frame */}
               </div>
             )}
 

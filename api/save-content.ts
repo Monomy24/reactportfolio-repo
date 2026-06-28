@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const owner = process.env.GITHUB_OWNER || 'Lague23Ceejay';
-  const repo = process.env.GITHUB_REPO || 'portfolio';
+  const repo = process.env.GITHUB_REPO || 'reactportfolio-repo';
   const path = 'public/data.json';
   const branch = process.env.GITHUB_BRANCH || 'main';
 

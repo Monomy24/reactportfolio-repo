@@ -1,24 +1,33 @@
+// src/types/portfolio.ts
+
 export interface ProjectItem {
   id: string;
   title: string;
   description: string;
-  stack: string[];      // Your existing skills matrix array
-  liveUrl: string;      // Used for Lifecycle Status
-  githubUrl: string;    // Used for Project Type Classification
-  featured: boolean;    // Used for Build Complete Flag
-
-  // ADD THESE 3 DYNAMIC KEYS HERE:
-  deploymentUrl?: string;     // Live domain deployment anchor URL
-  sourceCodeUrl?: string;     // Source control Git link URL
-  frameworksArray?: string[]; // Framework infrastructure array
+  stack: string[];      
+  liveUrl: string;      
+  githubUrl: string;    
+  featured: boolean;    
+  deploymentUrl?: string;     
+  sourceCodeUrl?: string;     
+  frameworksArray?: string[]; 
 }
-
 
 export interface GalleryItem {
   id: string;
   title: string;
   category: string;
   imageUrl: string;
+}
+
+// 🎓 EXPORTED ALIGNMENT: Extracted from inline to standalone named interface
+export interface GraduationData {
+  isEnabled: boolean;
+  badgeText: string;
+  title: string;
+  subtitle: string;
+  message: string;
+  gcashUrl: string;
 }
 
 export interface PortfolioData {
@@ -28,20 +37,12 @@ export interface PortfolioData {
     tagline: string;
     profileImage: string;
   };
-  graduation?: {
-    isEnabled: boolean;
-    badgeText: string;
-    title: string;
-    subtitle: string;
-    message: string;
-    gcashUrl: string;
-  };
-    about: {
+  graduation?: GraduationData; // 👈 Linked beautifully here!
+  about: {
     bio: string;
-    // UPDATED: Evolved from basic text arrays into structural key/value objects
     skills: {
-      name: string;      // The public text (e.g. "React Engine Core")
-      iconCode: string;  // The Devicon keyword (e.g. "react")
+      name: string;      
+      iconCode: string;  
     }[];
   };
   projects: ProjectItem[];

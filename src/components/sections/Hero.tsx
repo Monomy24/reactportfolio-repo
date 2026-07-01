@@ -1,8 +1,8 @@
 // src/components/sections/Hero.tsx
 
 import { useThemeStore, dimensionPacks } from '../../store/themeStore';
-import { usePortfolioStore } from '../../store/portfolioStore'; // 🚀 LIGHTWEIGHT SOURCE HOOK INTEGRATION
-import PixelImageTransition from '../../components/ui/PixelImageTransition';// 🚀 LIGHTWEIGHT TRANSTITION IMPORT
+import { usePortfolioStore } from '../../store/portfolioStore'; 
+import { PixelImageTransition } from '../../components/ui/PixelImageTransition'; // 🚀 FIXED: Upgraded to named import structure
 import MagicRings from '../ui/MagicRings';
 
 export function Hero() {
@@ -29,7 +29,6 @@ export function Hero() {
   /* ==========================================================================
      2. DYNAMIC CONTENT FAILSAFE BINDINGS
      ========================================================================== */
-  // Provide fallback default texts if database arrays haven't completed loading yet
   const title = data?.hero.title || "Bachelor of Science in Information Systems";
   const name = data?.hero.name || "Christian John K. Lague";
   const tagline = data?.hero.tagline || "Building responsive, modern, and interactive digital ecosystems.";
@@ -89,19 +88,37 @@ export function Hero() {
           />
         </div>
 
-        {/* 
-          🚀 FIXED LIVE CONTAINER: Renders your crisp Vercel Blob cloud URL path strings 
-          dynamically inside a standard web-optimized HTML img layout node.
-        */}
+        {/* PROFILE MAIN MOUNT BOUNDS PANEL CONTAINER */}
         <div 
           className={`w-64 h-64 md:w-72 md:h-72 rounded-full border flex items-center justify-center text-center transition-all duration-500 relative z-10 overflow-hidden ${avatarBg}`}
         >
           {profileImage ? (
-            /* 🚀 FIXED LIVE MODULE: Drops your new pixel transitions engine inside your hero aura */
+            /* ==========================================================================
+               🚀 REFACTORED ELEMENT MOUNT: AUTOMATED STRUCTURAL STAGGER TRANSITION
+               ========================================================================== */
             <PixelImageTransition 
-              img1={profileImage} 
-              img2={data?.hero?.profileImageSecondary} 
-              interval={1500} // Transitions exactly every 1.5 seconds!
+              gridSize={10}                    // Matrix grid block density complexity setting
+              animationStepDuration={0.25}     // Snappy, fast-paced pixel fade timing scale
+              intervalDuration={1500}          // Loops and changes precisely every 1.5 seconds
+              aspectRatio="100%"
+              // Injects the current background canvas hex signature code to match active dimension spaces
+              pixelColor={currentDimension === 'creamy' ? '#8FD9FB' : currentDimension === 'arctic' ? '#030006' : '#09090b'}
+              firstContent={
+                <img 
+                  src={profileImage} 
+                  alt={`${name} Primary Profile`} 
+                  className="w-full h-full object-cover rounded-full select-none pointer-events-none" 
+                />
+              }
+              secondContent={
+                data?.hero?.profileImageSecondary ? (
+                  <img 
+                    src={data.hero.profileImageSecondary} 
+                    alt={`${name} Secondary Profile`} 
+                    className="w-full h-full object-cover rounded-full select-none pointer-events-none" 
+                  />
+                ) : undefined
+              }
             />
           ) : (
             <span className="font-mono text-xs uppercase tracking-widest opacity-40 p-6">

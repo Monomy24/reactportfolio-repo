@@ -1,138 +1,177 @@
 // src/components/ui/PixelImageTransition.tsx
-import { useEffect, useRef, useState } from 'react';
 
-interface PixelImageProps {
-  img1: string;
-  img2?: string;
-  interval?: number;
+import React, { useRef, useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
+import { gsap } from 'gsap';
+
+interface PixelTransitionProps {
+  firstContent: React.ReactNode | string;
+  secondContent: React.ReactNode | string;
+  gridSize?: number;
+  pixelColor?: string;
+  animationStepDuration?: number;
+  intervalDuration?: number; // 🚀 AUTOMATED SLIDE TIMER
+  className?: string;
+  style?: CSSProperties;
+  aspectRatio?: string;
 }
 
-export default function PixelImageTransition({ img1, img2, interval = 1500 }: PixelImageProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [activeSource, setActiveSource] = useState(1);
-  const imagesRef = useRef<{ [key: number]: HTMLImageElement | null }>({});
-  const progressRef = useRef(0);
-  const isTransitioningRef = useRef(false);
+export const PixelImageTransition: React.FC<PixelTransitionProps> = ({
+  firstContent,
+  secondContent,
+  gridSize = 8,
+  pixelColor = '#ffffff',
+  animationStepDuration = 0.3,
+  intervalDuration = 1500, // Transitions exactly every 1.5 seconds
+  aspectRatio = '100%',
+  className = '',
+  style = {}
+}) => {
+  /* ==========================================================================
+     1. ARCHITECTURAL ENGINE STATE & CONTAINER REFS
+     ========================================================================== */
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const pixelGridRef = useRef<HTMLDivElement | null>(null);
+  const activeRef = useRef<HTMLDivElement | null>(null);
+  const delayedCallRef = useRef<gsap.core.Tween | null>(null);
+  const [isActive, setIsActive] = useState<boolean>(false);
 
-  // Helper: draw image with aspect ratio crop
-  const drawImageProp = (ctx: CanvasRenderingContext2D, image: HTMLImageElement) => {
-    const cw = ctx.canvas.width;
-    const ch = ctx.canvas.height;
-    const iw = image.width;
-    const ih = image.height;
-
-    const r = Math.max(cw / iw, ch / ih);
-    const nw = iw * r;
-    const nh = ih * r;
-    const cx = (iw - cw / r) / 2;
-    const cy = (ih - ch / r) / 2;
-
-    ctx.drawImage(image, cx, cy, iw - 2 * cx, ih - 2 * cy, 0, 0, cw, ch);
-  };
-
-  // Preload images
+  /* ==========================================================================
+     2. GRID MATRIX GENERATOR SUBSYSTEM
+     ========================================================================== */
   useEffect(() => {
-    const loadImg = (key: number, src: string) => {
-      if (!src) return;
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = src;
-      img.onload = () => { imagesRef.current[key] = img; };
-    };
+    const pixelGridEl = pixelGridRef.current;
+    if (!pixelGridEl) return;
 
-    loadImg(1, img1);
-    if (img2) loadImg(2, img2);
-  }, [img1, img2]);
+    // Flush old nodes to clean memory tracking states before building grids
+    pixelGridEl.innerHTML = '';
 
-  // Interval trigger
-  useEffect(() => {
-    if (!img2) {
-      setActiveSource(1);
-      return;
+    // Generate responsive overlay divisions based on gridSize scales
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        const pixel = document.createElement('div');
+        pixel.classList.add('pixelated-image-card__pixel');
+        pixel.classList.add('absolute', 'hidden');
+        pixel.style.backgroundColor = pixelColor;
+
+        const size = 100 / gridSize;
+        pixel.style.width = `${size}%`;
+        pixel.style.height = `${size}%`;
+        pixel.style.left = `${col * size}%`;
+        pixel.style.top = `${row * size}%`;
+
+        pixelGridEl.appendChild(pixel);
+      }
+    }
+  }, [gridSize, pixelColor]);
+
+  /* ==========================================================================
+     3. HIGH PERFORMANCE STAGGER ROTATION ENGINE
+     ========================================================================== */
+  const animatePixels = (activate: boolean): void => {
+    setIsActive(activate);
+
+    const pixelGridEl = pixelGridRef.current;
+    const activeEl = activeRef.current;
+    if (!pixelGridEl || !activeEl) return;
+
+    const pixels = pixelGridEl.querySelectorAll<HTMLDivElement>('.pixelated-image-card__pixel');
+    if (!pixels.length) return;
+
+    // Instantly kill running loops to prevent frame collisions
+    gsap.killTweensOf(pixels);
+    if (delayedCallRef.current) {
+      delayedCallRef.current.kill();
     }
 
-    const timer = setInterval(() => {
-      if (isTransitioningRef.current) return;
-      isTransitioningRef.current = true;
-      progressRef.current = 0;
-    }, interval);
+    gsap.set(pixels, { display: 'none' });
 
-    return () => clearInterval(timer);
-  }, [img2, interval]);
+    const totalPixels = pixels.length;
+    const staggerDuration = animationStepDuration / totalPixels;
 
-  // Animation loop
+    // STAGE A: Randomized pixelation cover wipe
+    gsap.to(pixels, {
+      display: 'block',
+      duration: 0,
+      stagger: {
+        each: staggerDuration,
+        from: 'random'
+      }
+    });
+
+    // STAGE B: Mid-timeline source asset context swap
+    delayedCallRef.current = gsap.delayedCall(animationStepDuration, () => {
+      activeEl.style.display = activate ? 'block' : 'none';
+      activeEl.style.pointerEvents = activate ? 'none' : '';
+    });
+
+    // STAGE C: Randomized pixelation clear wipe
+    gsap.to(pixels, {
+      display: 'none',
+      duration: 0,
+      delay: animationStepDuration,
+      stagger: {
+        each: staggerDuration,
+        from: 'random'
+      }
+    });
+  };
+
+  /* ==========================================================================
+     4. AUTOMATED LIFECYCLE CONTROLLER INTERVAL LOOPS
+     ========================================================================== */
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
+    // If no second profile photo is supplied, maintain static state for image A
+    if (!secondContent) return;
 
-    let animId: number;
+    let toggleState = false;
 
-    const render = () => {
-      const img1Obj = imagesRef.current[1];
-      const img2Obj = imagesRef.current[2];
+    // Run the animation wipe automatically using a stable background interval
+    const loopInterval = setInterval(() => {
+      toggleState = !toggleState;
+      animatePixels(toggleState);
+    }, intervalDuration + (animationStepDuration * 2000)); // Appends duration padding to align timelines
 
-      if (!isTransitioningRef.current || !img2Obj || !img1Obj) {
-        const currentImg = activeSource === 1 ? img1Obj : img2Obj;
-        if (currentImg) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          drawImageProp(ctx, currentImg);
-        }
-        animId = requestAnimationFrame(render);
-        return;
-      }
-
-      progressRef.current += 0.04;
-      if (progressRef.current >= 1) {
-        progressRef.current = 1;
-        isTransitioningRef.current = false;
-        setActiveSource(prev => (prev === 1 ? 2 : 1));
-      }
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const fromImg = activeSource === 1 ? img1Obj : img2Obj;
-      const toImg = activeSource === 1 ? img2Obj : img1Obj;
-      const p = progressRef.current;
-
-      const maxPixelSize = 24;
-      const currentPixelSize = Math.max(1, Math.sin(p * Math.PI) * maxPixelSize);
-
-      if (currentPixelSize <= 1) {
-        drawImageProp(ctx, p < 0.5 ? fromImg! : toImg!);
-      } else {
-        drawImageProp(ctx, p < 0.5 ? fromImg! : toImg!);
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        const size = Math.round(currentPixelSize);
-        for (let x = 0; x < canvas.width; x += size) {
-          for (let y = 0; y < canvas.height; y += size) {
-            const pixelIndex = ((Math.min(y + size / 2, canvas.height - 1) * canvas.width) + Math.min(x + size / 2, canvas.width - 1)) * 4;
-            const rColor = imgData.data[pixelIndex];
-            const gColor = imgData.data[pixelIndex + 1];
-            const bColor = imgData.data[pixelIndex + 2];
-            const aColor = imgData.data[pixelIndex + 3];
-
-            ctx.fillStyle = `rgba(${rColor},${gColor},${bColor},${aColor / 255})`;
-            ctx.fillRect(x, y, size, size);
-          }
-        }
-      }
-
-      animId = requestAnimationFrame(render);
+    return () => {
+      clearInterval(loopInterval);
+      if (delayedCallRef.current) delayedCallRef.current.kill();
     };
+  }, [secondContent, intervalDuration, animationStepDuration]);
 
-    render();
-    return () => cancelAnimationFrame(animId);
-  }, [activeSource]);
-
+  /* ==========================================================================
+     5. DYNAMIC MARKUP RENDER ASSEMBLY
+     ========================================================================== */
   return (
-    <canvas
-      ref={canvasRef}
-      width={288}
-      height={288}
-      className="w-full h-full object-cover"
-    ></canvas>
+    <div
+      ref={containerRef}
+      className={`
+        ${className}
+        relative
+        overflow-hidden
+        w-full
+        h-full
+      `.trim()}
+      style={style}
+    >
+      <div style={{ paddingTop: aspectRatio }} />
+
+      {/* Primary Base Layer Asset Container */}
+      <div className="absolute inset-0 w-full h-full" aria-hidden={isActive}>
+        {firstContent}
+      </div>
+
+      {/* Secondary Dynamic Target Layer Container */}
+      <div
+        ref={activeRef}
+        className="absolute inset-0 w-full h-full"
+        style={{ display: 'none' }}
+        aria-hidden={!isActive}
+      >
+        {secondContent}
+      </div>
+
+      {/* High density pixelated matrix overlay channel block */}
+      <div ref={pixelGridRef} className="absolute inset-0 w-full h-full pointer-events-none z-10" />
+    </div>
   );
-}
+};

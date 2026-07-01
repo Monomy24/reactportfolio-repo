@@ -154,9 +154,13 @@ export default function App() {
          C. GLOBAL HEADS-UP DISPLAY & EXECUTIVE OPERATIVE OVERLAYS
          ========================================================================== */}
       <CircularSwitcher />
-      <DimensionCursor />
 
-      <AdminOverlay />
+{/* Mount main cursor only when admin overlay is NOT active */}
+{!window.location.hash.includes('#admin') && <DimensionCursor />}
+
+{/* Mount admin overlay (with its own cursor) */}
+<AdminOverlay />
+
     </div>
   );
 }

@@ -6,8 +6,10 @@ import { AdminProjectsManager } from './AdminProjectsManager';
 import { AdminGalleryManager } from './AdminGalleryManager';
 import { AdminAboutManager } from './AdminAboutManager';
 import { AdminGraduationManager } from './AdminGraduationManager';
+import { AdminCursor } from '../ui/AdminCursor';
 import { optimizeImage } from '../../utils/imageOptimizer'; // 🚀 LIGHTWEIGHT UTILITY: Client-side compression script
 import { useImageUpload } from '../../hooks/useImageUpload';
+
 
 // Strict mapping type dictionary for application workspace tab-routing matrices
 type AdminTab = 'hero' | 'graduation' | 'about' | 'projects' | 'gallery' | 'settings';
@@ -165,15 +167,21 @@ export function AdminOverlay() {
     }
   };
 
-  /* ==========================================================================
-     6. LOCKED GATEKEEPER UI ACCESS SHIELD
+    /* ==========================================================================
+     6. LOCKED GATEKEEPER UI ACCESS SHIELD (PIN INPUT VIEW)
      ========================================================================== */
   if (!isAuthenticated) {
     return (
-      <div className="fixed inset-0 bg-zinc-950 z-50 flex items-center justify-center p-4">
-        <div className="max-w-sm w-full bg-zinc-900 border border-zinc-800 p-8 rounded-3xl text-center space-y-6">
+      <div className="fixed inset-0 bg-zinc-950 z-50 flex items-center justify-center p-4 cursor-none">
+        <AdminCursor />
+
+        <div className="fixed inset-0 pointer-events-none z-50 mix-blend-screen hidden md:block">
+          <div className="absolute w-3 h-3 rounded-full bg-red-500 opacity-60 animate-ping" />
+        </div>
+
+        <div className="max-w-sm w-full bg-zinc-900 border border-zinc-800 p-8 rounded-3xl text-center space-y-6 shadow-2xl">
           <div className="space-y-2">
-            <h3 className="text-xl font-bold tracking-tight">Admin System Terminal</h3>
+            <h3 className="text-xl font-bold tracking-tight text-zinc-100">Admin System Terminal</h3>
             <p className="text-xs font-mono text-zinc-500">Provide authorization PIN key to continue</p>
           </div>
           <input 
@@ -181,13 +189,21 @@ export function AdminOverlay() {
             value={pin} 
             onChange={(e) => setPin(e.target.value)} 
             maxLength={4} 
-            className="w-full text-center text-2xl tracking-widest bg-zinc-950 border border-zinc-800 py-3 rounded-xl focus:border-emerald-500 font-mono text-emerald-400 outline-none" 
+            className="w-full text-center text-2xl tracking-widest bg-zinc-950 border border-zinc-800 py-3 rounded-xl focus:border-emerald-500 font-mono text-emerald-400 outline-none transition-colors" 
             placeholder="••••" 
           />
-          <button onClick={verifyPin} className="w-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-semibold py-3 rounded-xl transition-colors text-sm">
+          <button 
+            type="button"
+            onClick={verifyPin} 
+            className="w-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-semibold py-3 rounded-xl transition-colors text-sm cursor-pointer shadow-lg shadow-emerald-500/10"
+          >
             Authenticate Session
           </button>
-          <button onClick={() => { window.location.hash = ''; }} className="text-xs font-mono text-zinc-500 hover:text-zinc-400">
+          <button 
+            type="button"
+            onClick={() => { window.location.hash = ''; }} 
+            className="text-xs font-mono text-zinc-500 hover:text-zinc-400 cursor-pointer block mx-auto underline decoration-dotted"
+          >
             Exit Workspace
           </button>
         </div>
@@ -195,7 +211,10 @@ export function AdminOverlay() {
     );
   }
 
-  // Structural mapping dictionary mapping options configured on control row tabs
+  /* ==========================================================================
+     7. SECURE CONFIGURATION DESCRIPTOR MAP
+     Moved outside the final return block to satisfy strict type compilers.
+     ========================================================================== */
   const tabsConfig: { id: AdminTab; label: string }[] = [
     { id: 'hero', label: '👤 Hero Profile' },
     { id: 'graduation', label: '🎓 Graduation CMS' },
@@ -204,11 +223,13 @@ export function AdminOverlay() {
     { id: 'gallery', label: '🖼️ Visual Sandbox' },
     { id: 'settings', label: '⚙️ Parameters' },
   ];
+
   /* ==========================================================================
      7. MAIN ADMINISTRATIVE CONSOLE PRESENTATION ENGINE
      ========================================================================== */
   return (
-    <div className="fixed inset-0 bg-zinc-950/95 backdrop-blur-md z-50 overflow-y-auto p-4 sm:p-8">
+    <div className="fixed inset-0 bg-zinc-950/95 backdrop-blur-md z-50 overflow-y-auto p-4 sm:p-8 cursor-none">
+      <AdminCursor />
       <div className="max-w-4xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-10 space-y-8 shadow-2xl flex flex-col min-h-[85vh]">
         
         {/* SECTION 7.1: SYSTEM TITLE & PERSISTENCE CONTROL TRACKERS */}
@@ -458,7 +479,7 @@ export function AdminOverlay() {
                           <path stroke="#09090b" d="M0 0h7v1H0zm22 0h7v1h-7zM0 1h1v5H0zm6 0h1v5H6zm16 0h1v5h-1zm6 0h1v5h-1zM1 2h4v1H1zm22 0h4v1h-4zM1 3h4v1H1zm22 0h4v1h-4zM1 4h4v1H1zm22 0h4v1h-4zM0 6h7v1H0zm22 0h7v1h-7zM8 8h1v1H8zm2 0h2v1h-2zm4 0h1v2h-1zm2 0h2v1h-2zm3 0h1v1h-1zm3 0h1v2h-1zm-11 1h1v1h-1zm4 0h3v1h-3zm5 0h1v1h-1zm-15 1h2v1H3zm3 0h2v1H6zm4 0h1v1h-1zm4 0h1v1h-1zm3 0h1v2h-1zm2 0h1v1h-1zm-13 1h1v1H4zm3 0h1v1H7zm1 0h1v1H8zm5 0h1v1h-1zm3 0h1v1h-1zm4 0h1v1h-1zm-14 1h1v1H5zm3 0h2v1H8zm4 0h1v1h-1zm2 0h1v1h-1zm4 0h1v1h-1zm-16 1h7v1H1zm9 0h2v1h-2zm3 0h1v1h-1zm5 0h3v1h-3zm-17 1h1v5H1zm6 0h1v5H6zm3 0h1v1H9zm2 0h1v1h-1zm4 0h3v1h-3zm5 0h1v2h-1zm-12 1h1v1h-1zm3 0h1v1h-1zm2 0h1v2h-1zm4 0h1v1h-1zm-11 1h4v1H2zm7 0h1v1H9zm6 0h1v1h-1zm5 0h1v1h-1zm-18 1h4v1H2zm6 0h2v1H8zm5 0h2v1h-2zm4 0h1v1h-1zm-17 1h4v1H2zm5 0h1v1H7zm4 0h1v1h-1zm2 0h3v1h-3zm5 0h2v1h-2zm-17 1h7v1H1zm9 0h1v1H9zm2 0h1v1h-1zm3 0h4v1h-4zm5 0h2v1h-2z"/>
                         </svg>
                       </div>
-                      <p className="text-[10px] font-mono text-zinc-500 leading-normal max-w-[180px]">
+                      <p className="text-[10px] font-mono text-zinc-500 leading-normal max-w-45">
                         Dynamic scale asset grid hook. Click download to extract the crisp master file.
                       </p>
                     </div>
@@ -467,7 +488,7 @@ export function AdminOverlay() {
                   {/* DYNAMIC INTEGRATED AUDIO AMBIENT CMS ROW CONTROLLER */}
                   <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl space-y-4 sm:col-span-2">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-mono text-zinc-400 block font-bold uppercase tracking-wider text-emerald-400">
+                      <label className="text-[11px] font-mono text-emerald-400 block font-bold uppercase tracking-wider">
                         🎵 Hot-Swappable Theme Ambient Jukebox
                       </label>
                       <p className="text-[10px] text-zinc-500 font-light leading-relaxed">
@@ -489,7 +510,7 @@ export function AdminOverlay() {
                               <span className={`text-[10px] font-mono font-bold block ${track.color.split(' ')[0]}`}>
                                 {track.title}
                               </span>
-                              <p className="text-[9px] text-zinc-500 font-mono truncate max-w-[200px]" title={currentTrackUrl}>
+                              <p className="text-[9px] text-zinc-500 font-mono truncate max-w-50" title={currentTrackUrl}>
                                 Path: {currentTrackUrl ? currentTrackUrl.split('/').pop() : 'Default Asset Embedded'}
                               </p>
                             </div>
@@ -622,3 +643,4 @@ export function AdminOverlay() {
     </div>
   );
 }
+

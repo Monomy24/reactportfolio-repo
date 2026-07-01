@@ -1,7 +1,9 @@
 // src/components/admin/AdminAboutManager.tsx
 
 import { usePortfolioStore } from '../../store/portfolioStore';
-import { renderIconSVG } from '../ui/CardSwapDeck';
+import { renderIconSVG } from '../../utils/renderIconSVG';
+
+
 
 export function AdminAboutManager() {
   const { draft, updateDraft } = usePortfolioStore();

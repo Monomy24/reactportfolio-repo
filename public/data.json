@@ -20,6 +20,26 @@
       {
         "name": "Tailwind Grid Layouts",
         "iconCode": "tailwindcss"
+      },
+      {
+        "name": "C#",
+        "iconCode": "csharp",
+        "description": "Experience building APIs with ASP.NET Core."
+      },
+      {
+        "name": "HTML",
+        "iconCode": "html",
+        "description": "Semantic markup and accessibility best practices."
+      },
+      {
+        "name": "CSS",
+        "iconCode": "css",
+        "description": "Responsive layouts with Flexbox and Grid."
+      },
+      {
+        "name": "PostgreSQL",
+        "iconCode": "postgresql",
+        "description": "Schema design, migrations, and role management."
       }
     ]
   },

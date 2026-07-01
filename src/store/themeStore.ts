@@ -1,6 +1,11 @@
+// src/store/themeStore.ts
+
 import { create } from 'zustand';
 import type { DimensionType, ThemePack } from '../types/theme';
 
+/* ==========================================================================
+   1. STATIC PORTAL DIMENSION STYLE PACKS MATRIX
+   ========================================================================== */
 export const dimensionPacks: Record<DimensionType, ThemePack> = {
   cosmic: {
     id: 'cosmic',
@@ -14,35 +19,24 @@ export const dimensionPacks: Record<DimensionType, ThemePack> = {
     cursor: { type: 'line', color: '#10b981', glow: '0 0 14px #10b981', trail: true },
     motionSpeed: 0.6,
     ease: 'power3.out',
-    // CONTRAST OVERRIDES:
     textPrimary: 'text-zinc-100',
     textSecondary: 'text-zinc-400'
   },
-  /// Inside src/store/themeStore.ts
+  
   creamy: {
     id: 'creamy',
     name: 'Creamy Studio',
     tagline: 'Creative/Soft Aesthetic',
-    // Root background canvas layout configured to your precise soft blue style palette
     bgClass: 'bg-[#8FD9FB] font-sans text-stone-900 selection:bg-[#FFEE8C] selection:text-stone-900',
-    
-    /* ==========================================================================
-       🚀 FIXED: GENERAL TEXT VALUE CONTRAST RE-CALIBRATION
-       ========================================================================== */
-    // Swapped from text-stone-600 to text-stone-800/90. This ensures that even if 
-    // a component reads from 'textClass' directly, it renders in highly legible charcoal.
     textClass: 'text-stone-800/90', 
-    
     accentClass: 'border-[#FFEE8C] text-stone-900 shadow-[0_4px_20px_rgba(255,238,140,0.45)]',
     cardClass: 'bg-white border-stone-200/80 shadow-[0_12px_40px_rgba(120,110,100,0.06)] backdrop-blur-sm',
     fontClass: 'font-sans tracking-normal',
     cursor: { type: 'dot', color: '#e11d48', glow: '0 4px 14px rgba(225,29,72,0.2)', trail: false },
     motionSpeed: 1.2,
     ease: 'elastic.out(1, 0.75)',
-    
-    // Unified high-contrast color mappings for headers and paragraphs
-    textPrimary: 'text-stone-900 font-extrabold', // Deep dark slate tone for headers ("About Me")
-    textSecondary: 'text-stone-800 font-medium',  // Crisp dark charcoal for paragraphs ("Passionate developer...")
+    textPrimary: 'text-stone-900 font-extrabold', 
+    textSecondary: 'text-stone-800 font-medium',  
   },
 
   arctic: {
@@ -57,26 +51,59 @@ export const dimensionPacks: Record<DimensionType, ThemePack> = {
     cursor: { type: 'target', color: '#22d3ee', glow: '0 0 15px #22d3ee', trail: false },
     motionSpeed: 0.4,
     ease: 'power4.inOut',
-    // CONTRAST OVERRIDES:
     textPrimary: 'text-slate-100',
     textSecondary: 'text-slate-400'
   }
 };
 
-
+/* ==========================================================================
+   2. IMMUTABLE ZUSTAND STORE APPLICATION INTERFACE CONTRACT
+   ========================================================================== */
 interface ThemeState {
   currentDimension: 'cosmic' | 'arctic' | 'creamy';
   isTransitioning: boolean;
-  isAudioMuted: boolean; // 🚀 FIXED: Explicitly type parameter visibility hook flags
+  isAudioMuted: boolean;
+  
+  // 🚀 FIXED INJECTION: Added state parameters to handle active HUD switcher previews [1, 2]
+  hoveredDimension: 'cosmic' | 'arctic' | 'creamy' | null;
+
+  // Global State Mutator Action Handlers
   setDimension: (dim: 'cosmic' | 'arctic' | 'creamy') => void;
-  toggleAudioMute: () => void; // 🚀 FIXED: Explicitly type state action mutator contract
+  toggleAudioMute: () => void;
+  
+  // 🚀 FIXED INJECTION: Integrated missing handlers needed by CircularSwitcher.tsx [1, 2]
+  setHoveredDimension: (dim: 'cosmic' | 'arctic' | 'creamy' | null) => void;
+  triggerHop: (targetDim: 'cosmic' | 'arctic' | 'creamy') => void;
 }
 
+/* ==========================================================================
+   3. REACTIVE STATE STORAGE SLICE HANDLERS
+   ========================================================================== */
 export const useThemeStore = create<ThemeState>((set) => ({
+  // Core initial state defaults
   currentDimension: 'cosmic',
   isTransitioning: false,
-  isAudioMuted: true, // Audio starts safely muted by default
+  isAudioMuted: true, // Audio loops start safely muted by default
+  hoveredDimension: null,
 
+  // Simple state switches
   toggleAudioMute: () => set((state) => ({ isAudioMuted: !state.isAudioMuted })),
   setDimension: (dim) => set({ currentDimension: dim }),
+  
+  // 🚀 FIXED: Mutates the visual switcher hover indicator variable context [1, 2]
+  setHoveredDimension: (dim) => set({ hoveredDimension: dim }),
+
+  // 🚀 FIXED: Triggers a dynamic dimensional transition warp timeline. [1, 2]
+  // This turns on the app-wide blur filters, waits 400ms during the warp interval, 
+  // swaps your theme properties background assets, and rolls out smooth page entry.
+  triggerHop: (targetDim) => {
+    set({ isTransitioning: true });
+    
+    setTimeout(() => {
+      set({ 
+        currentDimension: targetDim,
+        isTransitioning: false 
+      });
+    }, 400); // 400ms matches the blurring timeline animations inside App.tsx
+  }
 }));

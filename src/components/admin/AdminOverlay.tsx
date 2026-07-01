@@ -7,6 +7,7 @@ import { AdminGalleryManager } from './AdminGalleryManager';
 import { AdminAboutManager } from './AdminAboutManager';
 import { AdminGraduationManager } from './AdminGraduationManager';
 import { optimizeImage } from '../../utils/imageOptimizer'; // 🚀 LIGHTWEIGHT UTILITY: Client-side compression script
+import { useImageUpload } from '../../hooks/useImageUpload';
 
 // Strict mapping type dictionary for application workspace tab-routing matrices
 type AdminTab = 'hero' | 'graduation' | 'about' | 'projects' | 'gallery' | 'settings';
@@ -19,6 +20,8 @@ export function AdminOverlay() {
   const [pin, setPin] = useState('');
   const [activeTab, setActiveTab] = useState<AdminTab>('hero');
   const [isUploading, setIsUploading] = useState(false); // Tracks current avatar media binary cloud upload streams
+
+   const { uploadImage } = useImageUpload();
 
   // Destructure central reactive application Zustand state engines
   const { 
@@ -267,21 +270,94 @@ export function AdminOverlay() {
                     <input type="text" value={draft.hero.tagline} onChange={(e) => updateDraft(d => { d.hero.tagline = e.target.value; })} className="w-full bg-zinc-950 border border-zinc-800 p-3 rounded-xl focus:border-emerald-500/50 text-sm outline-none text-zinc-100" />
                   </div>
                   
-                  {/* MODIFIED: LIGHTWEIGHT AVATAR FILE UPLOADER PIPELINE (NO BASE64 INJECTION) */}
-                  <div className="sm:col-span-2 space-y-1">
-                    <label className="text-xs font-mono text-zinc-400">Profile Branding Image (Vercel Cloud Blob Delivery)</label>
-                    <div className="flex items-center gap-4">
-                      <label className={`flex-1 flex items-center justify-center gap-2 bg-zinc-950 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/50 transition-colors p-3 rounded-xl cursor-pointer text-zinc-400 text-xs ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                        <span>{isUploading ? 'Compressing & Syncing Cloud CDN...' : draft.hero.profileImage ? 'Replace Active Avatar' : 'Select Display File'}</span>
-                        <input type="file" accept="image/*" onChange={handleHeroImageUpload} className="hidden" disabled={isUploading} />
-                      </label>
-                      {draft.hero.profileImage && !isUploading && (
-                        <div className="w-11 h-11 bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden p-0.5 flex-shrink-0">
-                          <img src={draft.hero.profileImage} alt="Avatar Staging Preview" className="w-full h-full object-cover rounded-lg" />
+                  {/* ==========================================================================
+                     🚀 INTEGRATED: DUAL-IMAGE MEDIA CMS LAYER WITH DETACH TRIGGERS
+                     ========================================================================== */}
+                  <div className="sm:col-span-2 space-y-4 border-t border-zinc-800/40 pt-4">
+                    <span className="text-[11px] font-mono text-emerald-400 block font-bold uppercase tracking-wider">
+                      📸 Profile Identity Media Nodes (Dual-Image Pixel Rotate System)
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      
+                      {/* SUB-TAB A: HERO PROFILE DOM NODE WRAPPERS */}
+                      <div className="p-4 bg-zinc-950 rounded-xl border border-zinc-800/60 flex flex-col justify-between gap-3">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-mono text-zinc-400">Primary Avatar Asset</label>
+                          {draft.hero.profileImage && (
+                            <button 
+                              type="button"
+                              onClick={() => updateDraft(d => { d.hero.profileImage = ''; })}
+                              className="text-[10px] font-mono text-red-400 hover:text-red-300 honesty-pointer underline cursor-pointer"
+                            >
+                              Delete Asset
+                            </button>
+                          )}
                         </div>
-                      )}
+                        <div className="flex items-center gap-3">
+                          <label className={`flex-1 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 text-center text-zinc-400 p-2.5 rounded-lg border border-zinc-800 text-xs font-mono cursor-pointer ${isUploading ? 'opacity-40 pointer-events-none' : ''}`}>
+                            <span>Change Photo A</span>
+                            <input type="file" accept="image/*" className="hidden" disabled={isUploading} onChange={handleHeroImageUpload} />
+                          </label>
+                          {draft.hero.profileImage && (
+                            <div className="w-10 h-10 border border-zinc-700 rounded-full overflow-hidden shrink-0">
+                              <img src={draft.hero.profileImage} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* CARD SLOT B: SECONDARY CYCLING ASSET */}
+                      <div className="p-4 bg-zinc-950 rounded-xl border border-zinc-800/60 flex flex-col justify-between gap-3">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-mono text-zinc-400">Secondary Rotation Asset (Optional)</label>
+                          {draft.hero.profileImageSecondary && (
+                            <button 
+                              type="button"
+                              onClick={() => updateDraft(d => { d.hero.profileImageSecondary = ''; })}
+                              className="text-[10px] font-mono text-red-400 hover:text-red-300 honesty-pointer underline cursor-pointer"
+                            >
+                              Delete Asset
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <label className={`flex-1 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 text-center text-zinc-400 p-2.5 rounded-lg border border-zinc-800 text-xs font-mono cursor-pointer ${isUploading ? 'opacity-40 pointer-events-none' : ''}`}>
+                            <span>Upload Photo B</span>
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              disabled={isUploading} 
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                try {
+                                  setIsUploading(true);
+                                  // Reuses your unified custom hook module to optimize and stream to Vercel Blob
+                                  const cdnUrl = await uploadImage(file, 500, 0.8);
+                                  if (cdnUrl) {
+                                    updateDraft(d => { d.hero.profileImageSecondary = cdnUrl; });
+                                  }
+                                } catch (err) {
+                                  console.error(err);
+                                } finally {
+                                  setIsUploading(false);
+                                }
+                              }} 
+                            />
+                          </label>
+                          {draft.hero.profileImageSecondary && (
+                            <div className="w-10 h-10 border border-zinc-700 rounded-full overflow-hidden shrink-0">
+                              <img src={draft.hero.profileImageSecondary} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                     </div>
                   </div>
+
                 </div>
               </div>
             )}

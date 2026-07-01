@@ -2,6 +2,7 @@
 
 import { useThemeStore, dimensionPacks } from '../../store/themeStore';
 import { usePortfolioStore } from '../../store/portfolioStore'; // 🚀 LIGHTWEIGHT SOURCE HOOK INTEGRATION
+import PixelImageTransition from '../../components/ui/PixelImageTransition';// 🚀 LIGHTWEIGHT TRANSTITION IMPORT
 import MagicRings from '../ui/MagicRings';
 
 export function Hero() {
@@ -96,14 +97,13 @@ export function Hero() {
           className={`w-64 h-64 md:w-72 md:h-72 rounded-full border flex items-center justify-center text-center transition-all duration-500 relative z-10 overflow-hidden ${avatarBg}`}
         >
           {profileImage ? (
-            <img 
-              src={profileImage} 
-              alt={`${name} Profile Avatar`} 
-              loading="eager" // Load first-fold portfolio hero graphic instantly without lag
-              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            /* 🚀 FIXED LIVE MODULE: Drops your new pixel transitions engine inside your hero aura */
+            <PixelImageTransition 
+              img1={profileImage} 
+              img2={data?.hero?.profileImageSecondary} 
+              interval={1500} // Transitions exactly every 1.5 seconds!
             />
           ) : (
-            // Elegant fallback text token if no image properties exist in public/data.json
             <span className="font-mono text-xs uppercase tracking-widest opacity-40 p-6">
               [ No Photo Loaded ]
             </span>
